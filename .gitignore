@@ -1,6 +1,2 @@
-dist/pystackt-0.0.1-py3-none-any.whl
-dist/pystackt-0.0.1.tar.gz
-src/pystackt.egg-info/dependency_links.txt
-src/pystackt.egg-info/PKG-INFO
-src/pystackt.egg-info/SOURCES.txt
-src/pystackt.egg-info/top_level.txt
+dist/*
+src/pystackt.egg-info/*
