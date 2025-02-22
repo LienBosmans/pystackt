@@ -14,7 +14,7 @@ pip install pystackt
 ```
 
 
-## ⛏️🐙 Extracting object-centric event log from Github
+## ⛏️🐙 Extracting object-centric event logs from Github
 
 ### 📝 Example
 ```python
