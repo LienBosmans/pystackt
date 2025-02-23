@@ -79,12 +79,11 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     event_to_object_attribute_value = {}
 
     ## Data extraction & mapping        (can be slow because of REST API rate limits)
-    print(f"Starting extraction of object-centric event data from {max_issues} issues of repository {repo_owner}/{repo_name} using GitHub REST API via PyGitHub library.")
+    print(f"Starting extraction of object-centric event data from {max_issues if max_issues is not None else "all"} issues of repository {repo_owner}/{repo_name} using GitHub REST API via PyGitHub library.")
     print("While you wait, you can read about GitHub API rate limits here: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api")
 
     # get list of issues
-    issues = _get_issues(repo,num_issues=max_issues)
-    num_issues = issues.totalCount # get actual number of issues
+    issues,num_issues = _get_issues(repo,max_issues)
 
     print_counter = 0
     start_time = time.time()

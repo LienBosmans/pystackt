@@ -24,23 +24,23 @@ def _initiate_object_attributes(object_types:dict) -> dict:
     """
 
     descriptions = {'issue':[['number','integer'],
-                             ['title','string'],
-                             ['timeline_url','string']
+                             ['title','varchar'],
+                             ['timeline_url','varchar']
                             ],
                     'user':[['id','integer'],
-                            ['login','string'],
-                            ['url','string'],
-                            ['type','string'],
+                            ['login','varchar'],
+                            ['url','varchar'],
+                            ['type','varchar'],
                            ],
                     'team':[['id','integer'],              
-                            ['slug','string'],
-                            ['name','string'],
-                            ['privacy','string'],
-                            ['url','string']
+                            ['slug','varchar'],
+                            ['name','varchar'],
+                            ['privacy','varchar'],
+                            ['url','varchar']
                            ],
-                    'commit':[['sha','string'],              
-                              ['commit_message','string'],
-                              ['url','string'],
+                    'commit':[['sha','varchar'],              
+                              ['commit_message','varchar'],
+                              ['url','varchar'],
                            ],
                     }
     object_attributes = {}
@@ -56,13 +56,13 @@ def _initiate_object_attributes(object_types:dict) -> dict:
 def _initiate_relation_qualifiers() -> dict:
     """Initiates the relation qualifiers `created`, `timeline_event`, `actor`, `requested_reviewer`, `requested_team`, `assignee`, `committer`."""
 
-    descriptions = [['timeline_event','string'],
-                    ['created','string'],
-                    ['actor','string'],
-                    ['requested_reviewer','string'],
-                    ['requested_team','string'],
-                    ['assignee','string'],
-                    ['committer','string'],
+    descriptions = [['timeline_event','varchar'],
+                    ['created','varchar'],
+                    ['actor','varchar'],
+                    ['requested_reviewer','varchar'],
+                    ['requested_team','varchar'],
+                    ['assignee','varchar'],
+                    ['committer','varchar'],
                    ]
     
     relation_qualifiers = {}

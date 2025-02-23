@@ -1,10 +1,8 @@
 # PyStack't (`pystackt`)
-PyStack't (`pystackt`) is a Python package based on [Stack't](https://github.com/LienBosmans/stack-t). 
+PyStack't (`pystackt`) is a Python package based on [Stack't](https://github.com/LienBosmans/stack-t) that supports data preparation for object-centric process mining.
 
 While Stack't is a proof-of-concept on how to embed the data transformations needed for object-centric process mining into an (existing) data stack, it's not very user-friendly for ad-hoc use. PyStack't aims to fill that gap by exposing some functionality in a Python package.
 
-- In this first release, only the Github log extractor is included. The log will be written to a database (DuckDB) using the Stack't relational schema.
-- In next releases, data exporters to OCED formats (f.e. OCEL 2.0) will be added.
 
 ## 📦 Installation  
 You can install `pystackt` using pip:  
@@ -24,8 +22,8 @@ get_github_log(
     GITHUB_ACCESS_TOKEN="insert_your_github_access_token_here",
     repo_owner="LienBosmans",
     repo_name="stack-t",
-    max_issues=None,
-    quack_db="./stack-t.duckdb"
+    max_issues=None, # None returns all issues, can also be set to an integer to extract a limited data set
+    quack_db="./stackt.duckdb"
 )
 ```
 
@@ -38,3 +36,23 @@ You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/db
 
 ### 📜 Data Usage Policies
 Please ensure that you use the extracted data in **compliance with GitHub policies**, including [Information Usage Restrictions](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies#7-information-usage-restrictions) and [API Terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#h-api-terms).
+
+
+## 📤 Export to OCEL 2.0
+
+### 📝 Example
+```python
+from pystackt import *
+
+export_to_ocel2(
+    quack_db="./stackt.duckdb",
+    schema_in="main",
+    schema_out="ocel2",
+    sqlite_db="./ocel2_stackt.sqlite"
+)
+```
+
+### ℹ️ More information 
+
+- The OCEL 2.0 standard is defined in [OCEL (Object-Centric Event Log) 2.0 Specification](https://www.ocel-standard.org/2.0/ocel20_specification.pdf).
+- To explore event logs in the **OCEL 2.0 format**, you can use [Ocelot](https://ocelot.pm/about).

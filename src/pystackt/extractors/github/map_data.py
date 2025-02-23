@@ -301,10 +301,10 @@ def _get_or_create_event_attribute(attribute_description:str,event_type_descript
         event_type = _get_or_create_event_type(event_type_description,event_types)
 
         if attribute_description in ('author_association'):
-            datatype = 'string'
+            datatype = 'varchar'
         else: # catch-all just in case
             print(f"Unknown attribute_description '{attribute_description}' detected, defaulted to 'string' as datatype. Please add this attribute in the function `get_or_create_event_attribute()` for next time.")
-            datatype = 'string'
+            datatype = 'varchar'
 
         event_attribute = EventAttribute(event_type,attribute_description,datatype)
         event_attributes[key] = event_attribute

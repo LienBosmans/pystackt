@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pystackt"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Lien Bosmans", email="lienbosmans@live.com" },
 ]
@@ -15,7 +15,7 @@ requires-python = ">=3.12"
 dependencies = [
   "pyarrow",
   "polars",
-  "duckdb",
+  "duckdb>=1.1.0",
   "PyGithub"
 ]
 license = { file = "LICENSE" }
@@ -26,5 +26,5 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pypa/sampleproject"
-Issues = "https://github.com/pypa/sampleproject/issues"
+Homepage = "https://github.com/LienBosmans/pystackt"
+Issues = "https://github.com/LienBosmans/pystackt/issues"
