@@ -28,7 +28,7 @@ def _get_issues(repo,max_issues:int=10,only_closed:bool=True):
         issues = issues[:max_issues]
         issue_count = min(max_issues,num_issues)
     else:
-        issue_count = max_issues
+        issue_count = num_issues
 
     return issues,issue_count
 
