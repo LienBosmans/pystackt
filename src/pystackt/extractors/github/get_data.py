@@ -11,7 +11,7 @@ def _connect_to_github_repo(github_access_token:str,repo_owner:str,repo_name:str
 
     return repo
 
-def _get_issues(repo,num_issues:int=10,only_closed:bool=True):
+def _get_issues(repo,max_issues:int=10,only_closed:bool=True):
     '''Get the last (order by creation date) `num_issues` issues from 
     the given Github repository. By default the last 10 closed issues are returned.
     If num_isses is None, then all issues are returned.'''
@@ -22,11 +22,15 @@ def _get_issues(repo,num_issues:int=10,only_closed:bool=True):
         state = 'all'
     
     issues = repo.get_issues(state=state , sort='created', direction='desc')
+    num_issues = issues.totalCount
     
-    if num_issues is not None: 
-        issues = issues[:num_issues]
+    if max_issues is not None: 
+        issues = issues[:max_issues]
+        issue_count = min(max_issues,num_issues)
+    else:
+        issue_count = max_issues
 
-    return issues
+    return issues,issue_count
 
 def _get_events(issue):
     

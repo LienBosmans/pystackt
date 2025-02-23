@@ -83,8 +83,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     print("While you wait, you can read about GitHub API rate limits here: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api")
 
     # get list of issues
-    issues = _get_issues(repo,num_issues=max_issues)
-    num_issues = issues.totalCount # get actual number of issues
+    issues,num_issues = _get_issues(repo,max_issues)
 
     print_counter = 0
     start_time = time.time()
