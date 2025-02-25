@@ -11,6 +11,10 @@ You can install `pystackt` using pip:
 pip install pystackt
 ```
 
+## 📖 Documentation  
+
+Detailled documentation can be found here: [View PyStack't Documentation](https://lienbosmans.github.io/pystackt/)  
+
 
 ## ⛏️🐙 Extracting object-centric event logs from Github
 
