@@ -1,8 +1,6 @@
 # PyStack't (`pystackt`)
 PyStack't (`pystackt`) is a Python package based on [Stack't](https://github.com/LienBosmans/stack-t) that supports data preparation for object-centric process mining.
 
-While Stack't is a proof-of-concept on how to embed the data transformations needed for object-centric process mining into an (existing) data stack, it's not very user-friendly for ad-hoc use. PyStack't aims to fill that gap by exposing some functionality in a Python package.
-
 
 ## 📦 Installation  
 You can install `pystackt` using pip:  
