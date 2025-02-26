@@ -14,11 +14,13 @@ While any relational database can be used to store data in the Stack't relationa
 
 Extracting data from different systems is an important part of data preparation. While PyStack't does not support all functionality of a real data stack (incremental ingests, scheduling refreshes, monitoring data pipelines...), it aims to provide simple-to-use methods to get real-life data for your object-centric process mining adventures.
 
-Documenation for data extraction functionality can be found [here](extract_functions.md).
+### ⛏️ List of data extraction functionality
+- [`get_github_log`](extract/get_github_log.md)
 
 
 ## Data export
 
 The Stack't relational schema is intended as an intermediate storage hub. PyStack't provides export functionality to export the data to specific OCED formats that can be used by process mining applications and algorithms. This decoupled set-up has as main advantage that any future data source can be exported to all supported data formats, and any future OCED format can be combined with existing data extraction functionality.
 
-Documenation for data export functionality can be found [here](export_functions.md).
+### 📤 List of data export functionality
+- [`export_to_ocel2`](export/export_to_ocel2.md)

@@ -15,10 +15,14 @@ pip install pystackt
 
 Detailled documentation can be found here: [View PyStack't Documentation](https://lienbosmans.github.io/pystackt/)  
 
+## 🔍 Viewing Data  
+PyStack't creates **DuckDB database files**. To explore the data, you'll need a database manager. 
+You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/dbeaver.html) to download and install **DBeaver** for easy access.
 
-## ⛏️🐙 Extracting object-centric event logs from Github
 
-### 📝 Example
+## 📝 Examples
+
+### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](docs/extract/get_github_log.md))
 ```python
 from pystackt import *
 
@@ -31,20 +35,7 @@ get_github_log(
 )
 ```
 
-### 🔑 Generating a GitHub Access Token  
-To generate a GitHub access token, go to [GitHub Developer Settings](https://github.com/settings/tokens), click **"Generate new token (classic)"**, and proceed without selecting any scopes (leave all checkboxes unchecked). Copy the token and store it securely, as it won’t be shown again.
-
-### 🔍 Viewing Data  
-This function creates a **DuckDB database file**. To explore the data, you'll need a database manager. 
-You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/dbeaver.html) to download and install **DBeaver** for easy access.  
-
-### 📜 Data Usage Policies
-Please ensure that you use the extracted data in **compliance with GitHub policies**, including [Information Usage Restrictions](https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies#7-information-usage-restrictions) and [API Terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#h-api-terms).
-
-
-## 📤 Export to OCEL 2.0
-
-### 📝 Example
+### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](export/export_to_ocel2.md))
 ```python
 from pystackt import *
 
@@ -55,8 +46,3 @@ export_to_ocel2(
     sqlite_db="./ocel2_stackt.sqlite"
 )
 ```
-
-### ℹ️ More information 
-
-- The OCEL 2.0 standard is defined in [OCEL (Object-Centric Event Log) 2.0 Specification](https://www.ocel-standard.org/2.0/ocel20_specification.pdf).
-- To explore event logs in the **OCEL 2.0 format**, you can use [Ocelot](https://ocelot.pm/about).
