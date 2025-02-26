@@ -33,7 +33,7 @@ get_github_log(
 )
 ```
 
-### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](export/export_to_ocel2.md))
+### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](docs/export/export_to_ocel2.md))
 ```python
 from pystackt import *
 
