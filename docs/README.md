@@ -2,6 +2,8 @@
 
 PyStack't (`pip install pystackt`) is a Python package that supports data preparation for object-centric process mining. It covers extraction of object-centric event data, storage of that data, and export to OCED formats.
 
+[Source code](https://github.com/LienBosmans/pystackt) | [PyStack't on PyPi](https://pypi.org/project/pystackt/)
+
 
 ## Data Storage
 
