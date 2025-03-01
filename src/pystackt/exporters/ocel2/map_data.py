@@ -1,20 +1,5 @@
 import duckdb
 
-def _clear_schema(quack_db:str="./quack.duckdb",schema_out:str="ocel2"):
-    """Creates a schema `schema_out`, drops and overwrites existing schema if exists."""
-    print(f"Overwriting schema '{schema_out}'")
-
-    sql_str = (
-        f"CREATE SCHEMA IF NOT EXISTS {schema_out};"
-        f"DROP SCHEMA {schema_out} CASCADE;"
-        f"CREATE SCHEMA {schema_out};"
-    )
-
-    with duckdb.connect(quack_db) as quack:
-        quack.sql(sql_str)
-
-    return None
-
 def _create_ocel2_table(table_name:str,table_columns:list[str],sql_query:str,quack_db:str="./quack.duckdb",schema_out:str="ocel2"):
     """Creates `table_name` in `schema_out` of the DuckDB database `quack_db` 
     with columns defined in `table_columns` using the `sql_query` to generate the data."""
