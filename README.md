@@ -29,7 +29,8 @@ get_github_log(
     repo_owner="LienBosmans",
     repo_name="stack-t",
     max_issues=None, # None returns all issues, can also be set to an integer to extract a limited data set
-    quack_db="./stackt.duckdb"
+    quack_db="./stackt.duckdb",
+    schema="main"
 )
 ```
 
