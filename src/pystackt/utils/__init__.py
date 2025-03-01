@@ -17,3 +17,16 @@ def _clear_schema(quack_db:str,schema_name:str):
             quack.sql(sql_str)
 
     return None
+
+def _create_view(quack_db:str,schema_name:str,view_name:str,select_statement:str):
+    """Creates a view `view_name` in the schema `schema_name` of DuckDB database file `quack_db`,
+    using the SQL code in `select_statement`."""
+
+    sql_str = '''--sql
+        create view  ''' + f"{schema_name}.{view_name}" + ''' as       
+            ''' + select_statement + '\n'
+
+    with duckdb.connect(quack_db) as quack:
+        quack.sql(sql_str)
+
+    return None
