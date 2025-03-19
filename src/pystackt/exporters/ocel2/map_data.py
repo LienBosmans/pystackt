@@ -43,7 +43,7 @@ def _ocel2_event_map_type(quack_db:str="./quack.duckdb",schema_in:str="main",sch
     sql_query = """--sql
         select
             id as ocel_id,
-            lower(replace(description,' ','_')) as ocel_type_map
+            lower(replace(replace(description,' ','_'),'-','_')) as ocel_type_map
         from
             """ + schema_in + ".event_types"
 
@@ -137,7 +137,7 @@ def _ocel2_object_map_type(quack_db:str="./quack.duckdb",schema_in:str="main",sc
     sql_query = """--sql
         select
             id as ocel_type,
-            lower(replace(description,' ','_')) as ocel_type_map
+            lower(replace(replace(description,' ','_'),'-','_')) as ocel_type_map
         from
             """ + f"{schema_in}.object_types"
 
@@ -172,7 +172,7 @@ def _get_event_type_unpivoted(schema_in:str="main") -> str:
                 event_attributes.description as attribute_column_name,
                 event_attribute_values.attribute_value as attribute_value,
                 event_attributes.datatype as attribute_datatype,
-                lower(replace(event_types.description,' ','_')) as ocel_type_map
+                lower(replace(replace(event_types.description,' ','_'),'-','_')) as ocel_type_map
             from
                 """ + f"{schema_in}.events as events" + """--sql
                 left join """ + f"{schema_in}.event_attribute_values as event_attribute_values" + """--sql
@@ -204,7 +204,7 @@ def _get_object_type_unpivoted(schema_in:str="main") -> str:
                 object_attributes.description as ocel_changed_field,
                 object_attribute_values.attribute_value as attribute_value,
                 object_attributes.datatype as attribute_datatype,
-                lower(replace(object_types.description,' ','_')) as ocel_type_map
+                lower(replace(replace(object_types.description,' ','_'),'-','_')) as ocel_type_map
             from
                  """ + f"{schema_in}.objects as objects" + """--sql
                 left join  """ + f"{schema_in}.object_attribute_values as object_attribute_values" + """--sql
@@ -258,11 +258,11 @@ def _ocel2_type_tables(is_event:bool,quack_db:str="./quack.duckdb",schema_in:str
         if is_event:
             table_prefix = "event_"
             sql_get_unpivoted_data = _get_event_type_unpivoted(schema_in)
-            table_columns = ['ocel_id VARCHAR','ocel_time VARCHAR']
+            table_columns = ['ocel_id VARCHAR','ocel_time TIMESTAMP']
         else:
             table_prefix = "object_"
             sql_get_unpivoted_data = _get_object_type_unpivoted(schema_in)
-            table_columns = ['ocel_id VARCHAR','ocel_time VARCHAR','ocel_changed_field VARCHAR']
+            table_columns = ['ocel_id VARCHAR','ocel_time TIMESTAMP','ocel_changed_field VARCHAR']
 
         table_name = table_prefix + ocel_type
         attribute_columns = _get_attributes(ocel_type,is_event,quack_db,schema_in,schema_out)
