@@ -2,6 +2,9 @@ import time     # Used to provide user feedback on how long data extraction is t
 import os       # Used to check if directory of quack_database exists, and create it if not.
 import duckdb   # Used to create DuckDB database file.                   
 
+from pystackt.utils import (
+    _clear_schema
+)
 
 from pystackt.extractors.github.get_data import (  # uses the PyGithub Python library to access the GitHub REST API to get the data
     _connect_to_github_repo,
@@ -34,7 +37,7 @@ from pystackt.extractors.github.output_data import (   # converts custom class o
     _extract_dataframe
 )
 
-def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issues:int,quack_db:str="./quack.duckdb"):
+def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issues:int,quack_db:str="./quack.duckdb",schema:str="main"):
     """
     Uses Github access token to extract event data related from issues in specified GitHub repository (`repo_owner`/`repo_name`),
     and store it in a DuckDB database file (`quack_db`). Returns the `max_issues` most recent issues that are currently closed.
@@ -161,7 +164,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
         print(f"    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
 
     ## Store the result
-    print(f"Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}.")
+    print(f"Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
     tables_to_store = [['object_types',object_types],
                     ['object_attributes',object_attributes],
                     ['objects',objects],
@@ -175,12 +178,15 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
                     ['object_to_object',object_to_object],
                     ['event_to_object_attribute_value',event_to_object_attribute_value],
                     ]
+    
+    _clear_schema(quack_db,schema)
 
     for tbl in tables_to_store:
         _dataframe_to_persistent_duckdb(
             df_records=_extract_dataframe(tbl[1]),
             table_name=tbl[0],
-            duckdb_file_name=quack_db
+            duckdb_file_name=quack_db,
+            schema_name=schema
             )
         print(f"    Table {tbl[0]} ({len(tbl[1])} records) done.")
         

@@ -13,7 +13,7 @@ def _extract_dataframe(table:dict) -> pl.DataFrame:
 
     return df_records
 
-def _dataframe_to_persistent_duckdb(df_records:pl.DataFrame,table_name:str,duckdb_file_name) -> None:
+def _dataframe_to_persistent_duckdb(df_records:pl.DataFrame,table_name:str,duckdb_file_name,schema_name:str) -> None:
     """Stores a dataframe in a duckdb table (in defined duckdb_file database).
     Overwrites a table if it already exists."""
 
@@ -22,7 +22,7 @@ def _dataframe_to_persistent_duckdb(df_records:pl.DataFrame,table_name:str,duckd
 
     # drop table if it already exists
     con.sql('''--sql
-    drop table if exists ''' + table_name + '''
+    drop table if exists ''' + f"{schema_name}.{table_name}" + '''
     ''')
 
     # check if empty table needs to be generated
@@ -33,7 +33,7 @@ def _dataframe_to_persistent_duckdb(df_records:pl.DataFrame,table_name:str,duckd
     
     # write table to database
     con.sql('''--sql
-    create table  ''' + table_name + ''' as       
+    create table  ''' + f"{schema_name}.{table_name}" + ''' as       
         ''' + select_statement + '\n'
     )
 

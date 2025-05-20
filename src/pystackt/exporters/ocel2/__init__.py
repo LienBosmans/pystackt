@@ -1,5 +1,8 @@
+from pystackt.utils import (
+    _clear_schema
+)
+
 from pystackt.exporters.ocel2.map_data import (  # maps the data from Stack't relational schema to OCEL 2.0 relational schema
-    _clear_schema,
     _ocel2_event,
     _ocel2_event_map_type,
     _ocel2_event_object, 

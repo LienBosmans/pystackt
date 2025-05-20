@@ -15,7 +15,7 @@ export_to_ocel2(
 ```
 
 #### Input data (`quack_db`,`schema_in`)
-The input data for this function needs stored in a DuckDB database file using the Stack't relational schema. The path to the DuckDB file is defined in `quack_db`. The schema in which the data is stored is defined by `schema_in`.
+The input data for this function needs to be stored in a DuckDB database file using the Stack't relational schema. The path to the DuckDB file is defined in `quack_db`. The schema in which the data is stored is defined by `schema_in`.
 
 #### Output data (`schema_out`,`sqlite_db`)
 The output data in OCEL 2.0 format will be first written to the schema `schema_out` in `quack_db`. If this schema already exists, all existing tables in the schema will be deleted first.

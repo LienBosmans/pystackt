@@ -1,6 +1,6 @@
 # PyStack't Documentation
 
-PyStack't (`pip install pystackt`) is a Python package that supports data preparation for object-centric process mining. It covers extraction of object-centric event data, storage of that data, and export to OCED formats.
+PyStack't (`pip install pystackt`) is a Python package that supports data preparation for object-centric process mining. It covers extraction of object-centric event data, storage of that data, (visual) data exploration, and export to OCED formats.
 
 [Source code](https://github.com/LienBosmans/pystackt) | [PyPi](https://pypi.org/project/pystackt/)
 
@@ -26,3 +26,12 @@ The Stack't relational schema is intended as an intermediate storage hub. PyStac
 
 ### 📤 List of data export functionality
 - [`export_to_ocel2`](export/export_to_ocel2.md)
+
+
+## Data exploration
+
+Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, the latest release includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
+
+### 📤 List of data exploration functionality
+- [`create_statistics_views`](exploration/create_statistics_views.md)
+- [`interactive data visualization app`](exploration/interactive_data_visualization_app.md)
