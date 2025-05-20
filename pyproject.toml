@@ -16,7 +16,11 @@ dependencies = [
   "pyarrow",
   "polars",
   "duckdb>=1.1.0",
-  "PyGithub"
+  "PyGithub",
+  "dash",
+  "dash_bootstrap_components",
+  "dash_cytoscape",
+  "matplotlib"
 ]
 license = { file = "LICENSE" }
 classifiers = [
