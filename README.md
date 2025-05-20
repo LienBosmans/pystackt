@@ -43,6 +43,23 @@ get_github_log(
 )
 ```
 
+### 📈 Interactive data exploration ([`start_visualization_app`](docs/exploration/interactive_data_visualization_app.md))
+
+```python
+from pystackt import *
+
+prepare_graph_data( # only needed once
+    quack_db="./stackt.duckdb",
+    schema_in="main",
+    schema_out="graph_data_prep"
+)
+
+start_visualization_app(
+    quack_db="./stackt.duckdb",
+    schema="graph_data_prep"
+)
+```
+
 ### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](docs/export/export_to_ocel2.md))
 ```python
 from pystackt import *
