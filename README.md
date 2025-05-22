@@ -54,7 +54,7 @@ prepare_graph_data( # only needed once
     schema_out="graph_data_prep"
 )
 
-start_visualization_app(
+start_exploration_app(
     quack_db="./stackt.duckdb",
     schema="graph_data_prep"
 )

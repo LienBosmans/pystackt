@@ -20,6 +20,15 @@ Extracting data from different systems is an important part of data preparation.
 - [`get_github_log`](extract/get_github_log.md)
 
 
+## Data exploration
+
+Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, the latest release includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
+
+### 📈 List of data exploration functionality
+- [`create_statistics_views`](exploration/create_statistics_views.md)
+- [`interactive data visualization app`](exploration/interactive_data_visualization_app.md)
+
+
 ## Data export
 
 The Stack't relational schema is intended as an intermediate storage hub. PyStack't provides export functionality to export the data to specific OCED formats that can be used by process mining applications and algorithms. This decoupled set-up has as main advantage that any future data source can be exported to all supported data formats, and any future OCED format can be combined with existing data extraction functionality.
@@ -27,11 +36,3 @@ The Stack't relational schema is intended as an intermediate storage hub. PyStac
 ### 📤 List of data export functionality
 - [`export_to_ocel2`](export/export_to_ocel2.md)
 
-
-## Data exploration
-
-Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, the latest release includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
-
-### 📤 List of data exploration functionality
-- [`create_statistics_views`](exploration/create_statistics_views.md)
-- [`interactive data visualization app`](exploration/interactive_data_visualization_app.md)

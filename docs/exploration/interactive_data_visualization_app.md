@@ -11,7 +11,7 @@ prepare_graph_data(
     schema_out="graph_data_prep"
 )
 
-start_visualization_app(
+start_exploration_app(
     quack_db="./stackt.duckdb",
     schema="graph_data_prep"
 )
@@ -27,7 +27,7 @@ The input data for this function needs to be stored in a DuckDB database file us
 A table named `graph_base_table` will be created in the schema `schema_out`. If the schema already exists, it will be cleared first.
 
 
-### ▶️ Step 2: `start_visualization_app()`
+### ▶️ Step 2: `start_exploration_app()`
 Launches a local interactive app in your default browser to explore your OCED data.
 
 #### Input data (`quack_db`, `schema`)

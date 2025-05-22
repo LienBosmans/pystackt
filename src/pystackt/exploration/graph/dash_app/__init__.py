@@ -10,7 +10,7 @@ from pystackt.exploration.graph.dash_app.callbacks import _register_callbacks
 external_stylesheets = [dbc.themes.FLATLY]
 
 
-def start_visualization_app(quack_db:str,schema:str,host:str='127.0.0.1',port:int=5555):
+def start_exploration_app(quack_db:str,schema:str,host:str='127.0.0.1',port:int=5555):
 
     # Get distinct event types, object types, and objects
     with duckdb.connect(quack_db) as quack:
