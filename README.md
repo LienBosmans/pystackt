@@ -9,7 +9,7 @@ You can install `pystackt` using pip:
 pip install pystackt
 ```
 
-## 📖 Documentation  
+## [📖 Documentation](https://lienbosmans.github.io/pystackt/)
 
 Detailled documentation can be found here: [View PyStack't Documentation](https://lienbosmans.github.io/pystackt/)
 
@@ -29,7 +29,7 @@ Alternatively, you can use a database manager. You can follow this [DuckDB guide
 
 ## 📝 Examples
 
-### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](docs/extract/get_github_log.md))
+### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](https://lienbosmans.github.io/pystackt/extract/get_github_log.html))
 ```python
 from pystackt import *
 
@@ -43,7 +43,7 @@ get_github_log(
 )
 ```
 
-### 📈 Interactive data exploration ([`start_visualization_app`](docs/exploration/interactive_data_visualization_app.md))
+### 📈 Interactive data exploration ([`start_visualization_app`](https://lienbosmans.github.io/pystackt/exploration/interactive_data_visualization_app.html))
 
 ```python
 from pystackt import *
@@ -60,7 +60,7 @@ start_visualization_app(
 )
 ```
 
-### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](docs/export/export_to_ocel2.md))
+### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](https://lienbosmans.github.io/pystackt/export/export_to_ocel2.html))
 ```python
 from pystackt import *
 
