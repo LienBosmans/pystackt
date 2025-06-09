@@ -30,4 +30,4 @@ Below is a list of information that is lost when exporting to OCEL 2.0.
 ### ℹ️ More information on OCEL 2.0
 
 - The OCEL 2.0 standard is defined in [OCEL (Object-Centric Event Log) 2.0 Specification](https://www.ocel-standard.org/2.0/ocel20_specification.pdf).
-- To explore event logs in the **OCEL 2.0 format**, you can use [Ocelot](https://ocelot.pm/about).
+- To explore event logs in the **OCEL 2.0 format**, you can use [OCPQ](https://ocpq.aarkue.eu/) or [Ocelot](https://ocelot.pm/about).

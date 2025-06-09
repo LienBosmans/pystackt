@@ -24,10 +24,13 @@ def _ocel2_event(quack_db:str="./quack.duckdb",schema_in:str="main",schema_out:s
     # Prepare OCEL 2.0 table
     sql_query = """--sql
         select
-            id as ocel_id,
-            event_type_id as ocel_type
+            events.id as ocel_id,
+            lower(replace(replace(event_types.description,' ','_'),'-','_')) as ocel_type
         from
-            """ + schema_in + ".events"
+            """ + f"{schema_in}.events" + """--sql
+            left join """ + f"{schema_in}.event_types" + """--sql
+                on events.event_type_id = event_types.id
+    """
 
     # Write OCEL 2.0 table
     _create_ocel2_table("event",['ocel_id VARCHAR','ocel_type VARCHAR'],sql_query,quack_db,schema_out)
@@ -42,7 +45,7 @@ def _ocel2_event_map_type(quack_db:str="./quack.duckdb",schema_in:str="main",sch
     # Prepare OCEL 2.0 table
     sql_query = """--sql
         select
-            id as ocel_id,
+            lower(replace(replace(description,' ','_'),'-','_')) as ocel_type,
             lower(replace(replace(description,' ','_'),'-','_')) as ocel_type_map
         from
             """ + schema_in + ".event_types"
@@ -118,10 +121,13 @@ def _ocel2_object(quack_db:str="./quack.duckdb",schema_in:str="main",schema_out:
     # Prepare OCEL 2.0 table
     sql_query = """--sql
         select
-            id as ocel_id,
-            object_type_id as ocel_type
+            objects.id as ocel_id,
+            lower(replace(replace(object_types.description,' ','_'),'-','_')) as ocel_type
         from
-            """ + f"{schema_in}.objects"
+            """ + f"{schema_in}.objects" + """--sql
+            left join """ + f"{schema_in}.object_types" + """--sql
+                on objects.object_type_id = object_types.id
+    """
 
     # Write OCEL 2.0 table
     _create_ocel2_table("object",['ocel_id VARCHAR','ocel_type VARCHAR'],sql_query,quack_db,schema_out)
@@ -136,7 +142,7 @@ def _ocel2_object_map_type(quack_db:str="./quack.duckdb",schema_in:str="main",sc
     # Prepare OCEL 2.0 table
     sql_query = """--sql
         select
-            id as ocel_type,
+            lower(replace(replace(description,' ','_'),'-','_')) as ocel_type,
             lower(replace(replace(description,' ','_'),'-','_')) as ocel_type_map
         from
             """ + f"{schema_in}.object_types"
@@ -304,6 +310,5 @@ def _ocel2_type_tables(is_event:bool,quack_db:str="./quack.duckdb",schema_in:str
 
         # Write OCEL 2.0 table
         _create_ocel2_table(table_name,table_columns,sql_query,quack_db,schema_out)
-
-
+    
     return None
