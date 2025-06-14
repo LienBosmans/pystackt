@@ -1,6 +1,7 @@
-import time     # Used to provide user feedback on how long data extraction is taking.                        
 import os       # Used to check if directory of quack_database exists, and create it if not.
 import duckdb   # Used to create DuckDB database file.                   
+import time, math     # Used to provide user feedback on how long data extraction is taking.
+from datetime import datetime   
 
 from pystackt.utils import (
     _clear_schema
@@ -42,6 +43,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     Uses Github access token to extract event data related from issues in specified GitHub repository (`repo_owner`/`repo_name`),
     and store it in a DuckDB database file (`quack_db`). Returns the `max_issues` most recent issues that are currently closed.
     If max_issues is None, all issues are returned.
+    Progress updates will be printed every 1% progress and every 5 minutes.
     """
 
     # Check if DuckDB database is available first. Don't connect to the database while the script is running!
@@ -82,13 +84,16 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     event_to_object_attribute_value = {}
 
     ## Data extraction & mapping        (can be slow because of REST API rate limits)
-    print(f"Starting extraction of object-centric event data from {max_issues if max_issues is not None else "all"} issues of repository {repo_owner}/{repo_name} using GitHub REST API via PyGitHub library.")
-    print("While you wait, you can read about GitHub API rate limits here: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api")
+    print(f"Start extraction of object-centric event data from {max_issues if max_issues is not None else "all"} issues of repository {repo_owner}/{repo_name} using GitHub REST API via PyGitHub library.")
+    print("Status updates will be displayed every 1% progress and every 5 minutes. While you wait, you can read about GitHub API rate limits here: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api")
 
     # get list of issues
     issues,num_issues = _get_issues(repo,max_issues)
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_issues} issues ...")
 
     print_counter = 0
+    perc_done = 0
+    seconds_done = 0
     start_time = time.time()
     for issue in issues:
         issue_data = issue.raw_data
@@ -159,9 +164,20 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
 
         # keep user informed about progress
         print_counter += 1
+        prev_perc_done = perc_done
         perc_done = print_counter/num_issues
+
+        prev_seconds_done = seconds_done
         seconds_done = time.time() - start_time
-        print(f"    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
+
+        bool_print = (
+            print_counter == 1 # always print first time
+            or math.floor(perc_done*100) > math.floor(prev_perc_done*100) # print every 1% progress
+            or math.floor(seconds_done/(60*5)) > math.floor(prev_seconds_done/(60*5)) # print every 5 minutes
+        )
+        
+        if bool_print: 
+            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
 
     ## Store the result
     print(f"Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
