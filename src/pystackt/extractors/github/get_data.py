@@ -22,13 +22,14 @@ def _get_issues(repo,max_issues:int=10,only_closed:bool=True):
         state = 'all'
     
     issues = repo.get_issues(state=state , sort='created', direction='desc')
-    num_issues = issues.totalCount
+    # num_issues = issues.totalCount    # bug in PyGithub, totalCount returns 0
+    estimated_num_issues = int(issues[0].number) # works because sorted desc
     
     if max_issues is not None: 
         issues = issues[:max_issues]
-        issue_count = max_issues
+        issue_count = min(max_issues, estimated_num_issues)
     else:
-        issue_count = num_issues
+        issue_count = estimated_num_issues
 
     return issues,issue_count
 
