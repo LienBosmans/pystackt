@@ -234,15 +234,18 @@ def _new_timeline_event(issue_object,timeline_event_data:dict,event_types:dict,e
     elif event_type_name in ('assigned','unassigned'):
         user_data['assignee'] = timeline_event_data.get('assignee')
 
-    # elif event_type == 'line-commented':
-        # multiple events in one, todo
-            
+    elif event_type_name == 'line-commented':
+        if return_user_data: return [None,None] 
+        else: return None
+        # line-commented is multiple events in one, todo
+ 
     if (event_type_name is None) or (timestamp is None) or (user_data is None): 
         # timeline_event_data does not follow the generic data mapping, or the exception handled above
         print(f"Couldn't map below event data for {event_type_name}")
         print(json.dumps(timeline_event_data))
         print('\n')
-        return None
+        if return_user_data: return [None,None] 
+        else: return None
         
     # get the correct EventType object
     event_type = _get_or_create_event_type(event_type_name,event_types)

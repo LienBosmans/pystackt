@@ -90,7 +90,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
 
     # get list of issues
     issues,num_issues = _get_issues(repo,max_issues)
-    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_issues} issues ...")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for approximately {num_issues} issues ...")
 
     print_counter = 0
     perc_done = 0
@@ -139,29 +139,29 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
                         # link "commit" object to new event
                         _link_event_to_object(new_event,commit_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
 
-                for key,value in event_user_data.items():
-                    if value is not None:
-                        if key in ('requested_team'): # user and team are different object types, but used similarly which is why they are lumped together as users here
-                            event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=True)
-                        else:
-                            event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=False)
-                        
-                        if event_user_object is not None:
-                            # link "event" to "user", using "key" as relation qualifier
-                            _link_event_to_object(new_event,event_user_object,key,key,relation_qualifiers,event_to_object)
+                    for key,value in event_user_data.items():
+                        if value is not None:
+                            if key in ('requested_team'): # user and team are different object types, but used similarly which is why they are lumped together as users here
+                                event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=True)
+                            else:
+                                event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=False)
+                            
+                            if event_user_object is not None:
+                                # link "event" to "user", using "key" as relation qualifier
+                                _link_event_to_object(new_event,event_user_object,key,key,relation_qualifiers,event_to_object)
 
-                            if key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_requested':
-                                # link "issue" to "user" as requested_reviewer/requested_team
-                                _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
-                            elif key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_request_removed':
-                                # remove "requested_reviewer"/"requested_team" link between "issue" and "user"
-                                _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
-                            elif key == 'assignee' and new_event.event_type_description == 'assigned':
-                                # link "issue" to "user" as assignee
-                                _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
-                            elif key == 'assignee' and new_event.event_type_description == 'unassigned':
-                                # remove "assignee" link between "issue" and "user"
-                                _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
+                                if key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_requested':
+                                    # link "issue" to "user" as requested_reviewer/requested_team
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
+                                elif key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_request_removed':
+                                    # remove "requested_reviewer"/"requested_team" link between "issue" and "user"
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
+                                elif key == 'assignee' and new_event.event_type_description == 'assigned':
+                                    # link "issue" to "user" as assignee
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
+                                elif key == 'assignee' and new_event.event_type_description == 'unassigned':
+                                    # remove "assignee" link between "issue" and "user"
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
         
         except GithubException as e:
             print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    ⚠️ Skipping issue #{issue_number} due to GitHub error: {e}")
@@ -188,8 +188,10 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
         if bool_print: 
             print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
 
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Data extraction done! (Final percentage can differ from 100% since it's calculated based on the initial estimate of the number of issues.)")
+
     ## Store the result
-    print(f"Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
     tables_to_store = [['object_types',object_types],
                     ['object_attributes',object_attributes],
                     ['objects',objects],
@@ -215,5 +217,5 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
             )
         print(f"    Table {tbl[0]} ({len(tbl[1])} records) done.")
         
-    print("All done!")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    All done!")
     return None
