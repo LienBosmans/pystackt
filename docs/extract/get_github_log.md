@@ -9,6 +9,7 @@ get_github_log(
     repo_owner="LienBosmans",
     repo_name="stack-t",
     max_issues=None,
+    save_after_num_issues=1000,
     quack_db="./stackt.duckdb",
     schema="main"
 )
@@ -22,6 +23,9 @@ These values are used to identify the GitHub repository from which the activity 
 
 ### Maximum number of issues to return (`max_issues`)
 Because of API rate limits, fetching all activity data from a repo can take a long time. This parameter controls the number of issues for which data will be collected. Setting it to a positive integer `n` will return data from the `n` most recent issues with status "closed". Setting it to `None` will return the activity data for all closed issues.
+
+### Intermediate save functionality (`save_after_num_issues`)
+To mitigate the risk of forced system restarts and GitHub API outages, intermediate save functionality was added. Setting it to a reasonable number such as 500 or 1000 does not impact total extraction times and greatly decreases potential disappointment. The default value is 5000.
 
 ### Output database file (`quack_db`) and schema (`schema`)
 The extracted data will be stored in a DuckDB database using the Stack't relational schema. The tables will be stored in the given `schema`; the default schema is main. If the file does not exist yet, a new file will be created. Existing tables in `schema` will be overwritten.
