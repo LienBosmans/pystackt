@@ -1,7 +1,8 @@
-import os       # Used to check if directory of quack_database exists, and create it if not.
-import duckdb   # Used to create DuckDB database file.                   
-import time, math     # Used to provide user feedback on how long data extraction is taking.
-from datetime import datetime   
+import os                                           # Used to check if directory of quack_database exists, and create it if not.
+import duckdb                                       # Used to create DuckDB database file.                   
+import time, math                                   # Used to provide feedback on how long data extraction is taking.
+from datetime import datetime                       # Used to provide feedback on how long data extraction is taking.
+from github.GithubException import GithubException  # Used to skip issues instead of failing in case of unexpected GitHub API status response
 
 from pystackt.utils import (
     _clear_schema
@@ -38,7 +39,9 @@ from pystackt.extractors.github.output_data import (   # converts custom class o
     _extract_dataframe
 )
 
-def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issues:int,quack_db:str="./quack.duckdb",schema:str="main"):
+def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,
+                   max_issues:int,save_after_num_issues:int=5000,
+                   quack_db:str="./quack.duckdb",schema:str="main"):
     """
     Uses Github access token to extract event data related from issues in specified GitHub repository (`repo_owner`/`repo_name`),
     and store it in a DuckDB database file (`quack_db`). Returns the `max_issues` most recent issues that are currently closed.
@@ -56,7 +59,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     con = duckdb.connect(quack_db)
     con.close()
     print(f"    IMPORTANT! Do not connect to DuckDB database file '{quack_db}' while this script is running!")
-    print(f"    (Or, if you like living on the edge, at least disconnect before all issues are extracted and the script tries writing to it.)")
+    print(f"    (Or, if you like living on the edge, at least disconnect before the script tries writing to it.)")
 
 
     # Connect to repository
@@ -89,7 +92,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
 
     # get list of issues
     issues,num_issues = _get_issues(repo,max_issues)
-    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_issues} issues ...")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for approximately {num_issues} issues ...")
 
     print_counter = 0
     perc_done = 0
@@ -98,69 +101,77 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     for issue in issues:
         issue_data = issue.raw_data
         issue_number = issue_data.get('number')
+        
+        try:
+            # new "issue" object with attributes
+            issue_object = _new_object_issue(issue_data,object_types,objects,object_attributes,object_attribute_values)
 
-        # new "issue" object with attributes
-        issue_object = _new_object_issue(issue_data,object_types,objects,object_attributes,object_attribute_values)
+            # new "created" event
+            created_event = _new_event_created(issue_data,event_types,events,event_attributes,event_attribute_values)
 
-        # new "created" event
-        created_event = _new_event_created(issue_data,event_types,events,event_attributes,event_attribute_values)
+            # link "issue" object to "created" event
+            link_create_to_issue = _link_event_to_object(created_event,issue_object,'created',"new issue created",relation_qualifiers,event_to_object)
 
-        # link "issue" object to "created" event
-        link_create_to_issue = _link_event_to_object(created_event,issue_object,'created',"new issue created",relation_qualifiers,event_to_object)
+            # get (or create) "user" object
+            user_object = _get_object_user(issue_data.get("user"),existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN)
 
-        # get (or create) "user" object
-        user_object = _get_object_user(issue_data.get("user"),existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN)
+            # link "user" object to "created" event
+            link_create_to_user = _link_event_to_object(created_event,user_object,'created',"new issue created by",relation_qualifiers,event_to_object)
 
-        # link "user" object to "created" event
-        link_create_to_user = _link_event_to_object(created_event,user_object,'created',"new issue created by",relation_qualifiers,event_to_object)
+            # link "user" object to "issue" object
+            link_user_to_issue = _link_object_to_object(issue_object,user_object,created_event.timestamp,'created',"created by",relation_qualifiers,object_to_object)
 
-        # link "user" object to "issue" object
-        link_user_to_issue = _link_object_to_object(issue_object,user_object,created_event.timestamp,'created',"created by",relation_qualifiers,object_to_object)
+            # get list of timeline events
+            timeline = _get_events(issue)
 
-        # get list of timeline events
-        timeline = _get_events(issue)
+            for timeline_event in timeline:
+                timeline_event_data = timeline_event.raw_data
 
-        for timeline_event in timeline:
-            timeline_event_data = timeline_event.raw_data
+                # new event (type determined by timeline_event_data) and user data related to the event
+                new_event,event_user_data = _new_timeline_event(issue_object,timeline_event_data,event_types,events,event_attributes,event_attribute_values,return_user_data=True)
 
-            # new event (type determined by timeline_event_data) and user data related to the event
-            new_event,event_user_data = _new_timeline_event(issue_object,timeline_event_data,event_types,events,event_attributes,event_attribute_values,return_user_data=True)
+                if new_event is not None:
+                    # link "issue" object to new event
+                    _link_event_to_object(new_event,issue_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
 
-            if new_event is not None:
-                # link "issue" object to new event
-                _link_event_to_object(new_event,issue_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
+                    if new_event.event_type_description == "committed":
+                        # create new commit object
+                        commit_object = _new_object_commit(timeline_event_data,object_types,objects,object_attributes,object_attribute_values)
 
-                if new_event.event_type_description == "committed":
-                    # create new commit object
-                    commit_object = _new_object_commit(timeline_event_data,object_types,objects,object_attributes,object_attribute_values)
+                        # link "commit" object to new event
+                        _link_event_to_object(new_event,commit_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
 
-                    # link "commit" object to new event
-                    _link_event_to_object(new_event,commit_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
+                    for key,value in event_user_data.items():
+                        if value is not None:
+                            if key in ('requested_team'): # user and team are different object types, but used similarly which is why they are lumped together as users here
+                                event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=True)
+                            else:
+                                event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=False)
+                            
+                            if event_user_object is not None:
+                                # link "event" to "user", using "key" as relation qualifier
+                                _link_event_to_object(new_event,event_user_object,key,key,relation_qualifiers,event_to_object)
 
-            for key,value in event_user_data.items():
-                if value is not None:
-                    if key in ('requested_team'): # user and team are different object types, but used similarly which is why they are lumped together as users here
-                        event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=True)
-                    else:
-                        event_user_object = _get_object_user(value,existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN,is_team=False)
-                    
-                    if event_user_object is not None:
-                        # link "event" to "user", using "key" as relation qualifier
-                        _link_event_to_object(new_event,event_user_object,key,key,relation_qualifiers,event_to_object)
+                                if key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_requested':
+                                    # link "issue" to "user" as requested_reviewer/requested_team
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
+                                elif key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_request_removed':
+                                    # remove "requested_reviewer"/"requested_team" link between "issue" and "user"
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
+                                elif key == 'assignee' and new_event.event_type_description == 'assigned':
+                                    # link "issue" to "user" as assignee
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
+                                elif key == 'assignee' and new_event.event_type_description == 'unassigned':
+                                    # remove "assignee" link between "issue" and "user"
+                                    _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
+        
+        except GithubException as e:
+            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    ⚠️ Skipping issue #{issue_number} due to GitHub error: {e}")
+            continue
 
-                        if key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_requested':
-                            # link "issue" to "user" as requested_reviewer/requested_team
-                            _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
-                        elif key in ('requested_reviewer','requested_team') and new_event.event_type_description == 'review_request_removed':
-                            # remove "requested_reviewer"/"requested_team" link between "issue" and "user"
-                            _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
-                        elif key == 'assignee' and new_event.event_type_description == 'assigned':
-                            # link "issue" to "user" as assignee
-                            _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,key,relation_qualifiers,object_to_object)
-                        elif key == 'assignee' and new_event.event_type_description == 'unassigned':
-                            # remove "assignee" link between "issue" and "user"
-                            _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
-
+        except Exception as e:
+            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    ⚠️ Skipping issue #{issue_number} due to unexpected error while processing: {e}")
+            continue
 
         # keep user informed about progress
         print_counter += 1
@@ -179,8 +190,60 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
         if bool_print: 
             print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
 
+        # Save results intermediately
+        if print_counter % save_after_num_issues == 0:
+            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting intermediate save process...")
+
+            _store_result(
+                object_types=object_types,
+                objects=objects,
+                object_attributes=object_attributes,
+                object_attribute_values=object_attribute_values,
+                event_types=event_types,
+                events=events,
+                event_attributes=event_attributes,
+                event_attribute_values=event_attribute_values,
+                relation_qualifiers=relation_qualifiers,
+                event_to_object=event_to_object,
+                object_to_object=object_to_object,
+                event_to_object_attribute_value=event_to_object_attribute_value,
+                repo_owner=repo_owner,
+                repo_name=repo_name,
+                quack_db=quack_db,
+                schema=schema
+            )
+
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Data extraction done! (Final percentage can differ from 100% since it's calculated based on the initial estimate of the number of issues.)")
+
+    ## Store the result (includes print statements)
+    _store_result(
+        object_types=object_types,
+        objects=objects,
+        object_attributes=object_attributes,
+        object_attribute_values=object_attribute_values,
+        event_types=event_types,
+        events=events,
+        event_attributes=event_attributes,
+        event_attribute_values=event_attribute_values,
+        relation_qualifiers=relation_qualifiers,
+        event_to_object=event_to_object,
+        object_to_object=object_to_object,
+        event_to_object_attribute_value=event_to_object_attribute_value,
+        repo_owner=repo_owner,
+        repo_name=repo_name,
+        quack_db=quack_db,
+        schema=schema
+    )
+        
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    All done!")
+
+
+def _store_result(object_types:dict,object_attributes:dict,objects:dict,object_attribute_values:dict,
+                  event_types:dict,event_attributes:dict,events:dict,event_attribute_values:dict,
+                  relation_qualifiers:dict,event_to_object:dict,object_to_object:dict,event_to_object_attribute_value:dict,
+                  repo_owner:str,repo_name:str,quack_db:str="./quack.duckdb",schema:str="main") -> None:
     ## Store the result
-    print(f"Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
     tables_to_store = [['object_types',object_types],
                     ['object_attributes',object_attributes],
                     ['objects',objects],
@@ -205,6 +268,3 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
             schema_name=schema
             )
         print(f"    Table {tbl[0]} ({len(tbl[1])} records) done.")
-        
-    print("All done!")
-    return None

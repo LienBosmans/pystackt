@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pystackt"
-version = "0.0.4"
+version = "0.0.6"
 authors = [
   { name="Lien Bosmans", email="lienbosmans@live.com" },
 ]

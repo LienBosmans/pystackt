@@ -26,12 +26,13 @@ The Stack't relational schema is intended as an intermediate storage hub. PyStac
 
 ### 📤 List of data export functionality
 - [`export_to_ocel2`](export/export_to_ocel2.md)
+- [`export_to_promg`](export/export_to_promg.md)
 
 
 ## Data exploration
 
 Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, the latest release includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
 
-### 📤 List of data exploration functionality
+### 📈 List of data exploration functionality
 - [`create_statistics_views`](exploration/create_statistics_views.md)
 - [`interactive data visualization app`](exploration/interactive_data_visualization_app.md)
