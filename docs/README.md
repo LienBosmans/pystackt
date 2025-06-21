@@ -26,6 +26,7 @@ The Stack't relational schema is intended as an intermediate storage hub. PyStac
 
 ### 📤 List of data export functionality
 - [`export_to_ocel2`](export/export_to_ocel2.md)
+- [`export_to_promg`](export/export_to_promg.md)
 
 
 ## Data exploration
