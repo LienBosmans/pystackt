@@ -39,7 +39,9 @@ from pystackt.extractors.github.output_data import (   # converts custom class o
     _extract_dataframe
 )
 
-def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issues:int,quack_db:str="./quack.duckdb",schema:str="main"):
+def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,
+                   max_issues:int,save_after_num_issues:int=5000,
+                   quack_db:str="./quack.duckdb",schema:str="main"):
     """
     Uses Github access token to extract event data related from issues in specified GitHub repository (`repo_owner`/`repo_name`),
     and store it in a DuckDB database file (`quack_db`). Returns the `max_issues` most recent issues that are currently closed.
@@ -57,7 +59,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     con = duckdb.connect(quack_db)
     con.close()
     print(f"    IMPORTANT! Do not connect to DuckDB database file '{quack_db}' while this script is running!")
-    print(f"    (Or, if you like living on the edge, at least disconnect before all issues are extracted and the script tries writing to it.)")
+    print(f"    (Or, if you like living on the edge, at least disconnect before the script tries writing to it.)")
 
 
     # Connect to repository
@@ -188,8 +190,58 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
         if bool_print: 
             print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
 
+        # Save results intermediately
+        if print_counter % save_after_num_issues == 0:
+            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting intermediate save process...")
+
+            _store_result(
+                object_types=object_types,
+                objects=objects,
+                object_attributes=object_attributes,
+                object_attribute_values=object_attribute_values,
+                event_types=event_types,
+                events=events,
+                event_attributes=event_attributes,
+                event_attribute_values=event_attribute_values,
+                relation_qualifiers=relation_qualifiers,
+                event_to_object=event_to_object,
+                object_to_object=object_to_object,
+                event_to_object_attribute_value=event_to_object_attribute_value,
+                repo_owner=repo_owner,
+                repo_name=repo_name,
+                quack_db=quack_db,
+                schema=schema
+            )
+
     print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Data extraction done! (Final percentage can differ from 100% since it's calculated based on the initial estimate of the number of issues.)")
 
+    ## Store the result (includes print statements)
+    _store_result(
+        object_types=object_types,
+        objects=objects,
+        object_attributes=object_attributes,
+        object_attribute_values=object_attribute_values,
+        event_types=event_types,
+        events=events,
+        event_attributes=event_attributes,
+        event_attribute_values=event_attribute_values,
+        relation_qualifiers=relation_qualifiers,
+        event_to_object=event_to_object,
+        object_to_object=object_to_object,
+        event_to_object_attribute_value=event_to_object_attribute_value,
+        repo_owner=repo_owner,
+        repo_name=repo_name,
+        quack_db=quack_db,
+        schema=schema
+    )
+        
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    All done!")
+
+
+def _store_result(object_types:dict,object_attributes:dict,objects:dict,object_attribute_values:dict,
+                  event_types:dict,event_attributes:dict,events:dict,event_attribute_values:dict,
+                  relation_qualifiers:dict,event_to_object:dict,object_to_object:dict,event_to_object_attribute_value:dict,
+                  repo_owner:str,repo_name:str,quack_db:str="./quack.duckdb",schema:str="main") -> None:
     ## Store the result
     print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
     tables_to_store = [['object_types',object_types],
@@ -216,6 +268,3 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
             schema_name=schema
             )
         print(f"    Table {tbl[0]} ({len(tbl[1])} records) done.")
-        
-    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    All done!")
-    return None
