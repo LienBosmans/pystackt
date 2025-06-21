@@ -1,8 +1,7 @@
-import os                                           # Used to check if directory of quack_database exists, and create it if not.
-import duckdb                                       # Used to create DuckDB database file.                   
-import time, math                                   # Used to provide feedback on how long data extraction is taking.
-from datetime import datetime                       # Used to provide feedback on how long data extraction is taking.
-from github.GithubException import GithubException  # Used to skip issues instead of failing in case of unexpected GitHub API status response
+import os       # Used to check if directory of quack_database exists, and create it if not.
+import duckdb   # Used to create DuckDB database file.                   
+import time, math     # Used to provide user feedback on how long data extraction is taking.
+from datetime import datetime   
 
 from pystackt.utils import (
     _clear_schema
@@ -90,7 +89,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
 
     # get list of issues
     issues,num_issues = _get_issues(repo,max_issues)
-    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_issues} issues ...")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for approximately {num_issues} issues ...")
 
     print_counter = 0
     perc_done = 0
@@ -99,45 +98,44 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
     for issue in issues:
         issue_data = issue.raw_data
         issue_number = issue_data.get('number')
-        
-        try:
-            # new "issue" object with attributes
-            issue_object = _new_object_issue(issue_data,object_types,objects,object_attributes,object_attribute_values)
 
-            # new "created" event
-            created_event = _new_event_created(issue_data,event_types,events,event_attributes,event_attribute_values)
+        # new "issue" object with attributes
+        issue_object = _new_object_issue(issue_data,object_types,objects,object_attributes,object_attribute_values)
 
-            # link "issue" object to "created" event
-            link_create_to_issue = _link_event_to_object(created_event,issue_object,'created',"new issue created",relation_qualifiers,event_to_object)
+        # new "created" event
+        created_event = _new_event_created(issue_data,event_types,events,event_attributes,event_attribute_values)
 
-            # get (or create) "user" object
-            user_object = _get_object_user(issue_data.get("user"),existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN)
+        # link "issue" object to "created" event
+        link_create_to_issue = _link_event_to_object(created_event,issue_object,'created',"new issue created",relation_qualifiers,event_to_object)
 
-            # link "user" object to "created" event
-            link_create_to_user = _link_event_to_object(created_event,user_object,'created',"new issue created by",relation_qualifiers,event_to_object)
+        # get (or create) "user" object
+        user_object = _get_object_user(issue_data.get("user"),existing_users,object_types,objects,object_attributes,object_attribute_values,GITHUB_ACCESS_TOKEN)
 
-            # link "user" object to "issue" object
-            link_user_to_issue = _link_object_to_object(issue_object,user_object,created_event.timestamp,'created',"created by",relation_qualifiers,object_to_object)
+        # link "user" object to "created" event
+        link_create_to_user = _link_event_to_object(created_event,user_object,'created',"new issue created by",relation_qualifiers,event_to_object)
 
-            # get list of timeline events
-            timeline = _get_events(issue)
+        # link "user" object to "issue" object
+        link_user_to_issue = _link_object_to_object(issue_object,user_object,created_event.timestamp,'created',"created by",relation_qualifiers,object_to_object)
 
-            for timeline_event in timeline:
-                timeline_event_data = timeline_event.raw_data
+        # get list of timeline events
+        timeline = _get_events(issue)
 
-                # new event (type determined by timeline_event_data) and user data related to the event
-                new_event,event_user_data = _new_timeline_event(issue_object,timeline_event_data,event_types,events,event_attributes,event_attribute_values,return_user_data=True)
+        for timeline_event in timeline:
+            timeline_event_data = timeline_event.raw_data
 
-                if new_event is not None:
-                    # link "issue" object to new event
-                    _link_event_to_object(new_event,issue_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
+            # new event (type determined by timeline_event_data) and user data related to the event
+            new_event,event_user_data = _new_timeline_event(issue_object,timeline_event_data,event_types,events,event_attributes,event_attribute_values,return_user_data=True)
 
-                    if new_event.event_type_description == "committed":
-                        # create new commit object
-                        commit_object = _new_object_commit(timeline_event_data,object_types,objects,object_attributes,object_attribute_values)
+            if new_event is not None:
+                # link "issue" object to new event
+                _link_event_to_object(new_event,issue_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
 
-                        # link "commit" object to new event
-                        _link_event_to_object(new_event,commit_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
+                if new_event.event_type_description == "committed":
+                    # create new commit object
+                    commit_object = _new_object_commit(timeline_event_data,object_types,objects,object_attributes,object_attribute_values)
+
+                    # link "commit" object to new event
+                    _link_event_to_object(new_event,commit_object,'timeline_event',new_event.event_type_description,relation_qualifiers,event_to_object)
 
                 for key,value in event_user_data.items():
                     if value is not None:
@@ -162,14 +160,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
                             elif key == 'assignee' and new_event.event_type_description == 'unassigned':
                                 # remove "assignee" link between "issue" and "user"
                                 _link_object_to_object(issue_object,event_user_object,new_event.timestamp,key,None,relation_qualifiers,object_to_object)
-        
-        except GithubException as e:
-            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    ⚠️ Skipping issue #{issue_number} due to GitHub error: {e}")
-            continue
 
-        except Exception as e:
-            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    ⚠️ Skipping issue #{issue_number} due to unexpected error while processing: {e}")
-            continue
 
         # keep user informed about progress
         print_counter += 1
@@ -188,8 +179,11 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
         if bool_print: 
             print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data for issue #{issue_number} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
 
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Data extraction done! (Final percentage can differ from 100% since it's calculated based on the initial estimate of the number of issues.)")
+  
+
     ## Store the result
-    print(f"Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
     tables_to_store = [['object_types',object_types],
                     ['object_attributes',object_attributes],
                     ['objects',objects],
@@ -215,5 +209,5 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,max_issu
             )
         print(f"    Table {tbl[0]} ({len(tbl[1])} records) done.")
         
-    print("All done!")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    All done!")
     return None
