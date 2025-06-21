@@ -2,13 +2,18 @@ from pystackt.utils import (
     _clear_schema
 )
 
-# from pystackt.exporters.promg.map_data import (
-#     _event_log,
-#     _object_type
-# )
+from pystackt.exporters.promg.map_data import (
+    _event_log,
+    _object_type,
+    _dataset_description,
+    _semantic_header
+)
 
-from map_data import (_event_log, _object_type, _dataset_description, _semantic_header)
-from output_data import (_create_folder_structure, _copy_schema_to_csv)
+from pystackt.exporters.promg.output_data import (
+    _create_folder_structure,
+    _copy_schema_to_csv
+)
+
 
 def export_to_promg(quack_db:str="./quack.duckdb",schema_in:str="main",schema_out:str="promg",parent_folder:str='./promg_export',dataset_name:str='stackt'):
     """Uses the DuckDB database `quack_db` to map OCED data stored using Stack't relational schema.
