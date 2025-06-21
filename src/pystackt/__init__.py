@@ -1,5 +1,8 @@
 from pystackt.extractors import get_github_log
-from pystackt.exporters import export_to_ocel2
+from pystackt.exporters import (
+    export_to_ocel2,
+    export_to_promg
+)
 from pystackt.exploration import (
     create_statistics_views, 
     prepare_graph_data,
