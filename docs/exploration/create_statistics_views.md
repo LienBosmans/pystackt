@@ -13,6 +13,13 @@ create_statistics_views(
 )
 ```
 
+| Parameter     | Type   | Description                                                  |
+|---------------|--------|--------------------------------------------------------------|
+| `quack_db`    | `str`  | Path to the DuckDB database file containing the input data.  |
+| `schema_in`   | `str`  | Name of the schema in the DuckDB file that contains the input data. Needs to be stored using in Stack't relational schema. |
+| `schema_out`  | `str`  | Name of the schema where the output SQL views will be created. If schema already exists, it will be cleared first. |
+
+
 #### Input data (`quack_db`, `schema_in`)
 The input data must be stored in a DuckDB database file using the Stack't relational schema. `quack_db` defines the path to this file, and `schema_in` specifies the schema containing the OCED data.
 

@@ -15,6 +15,17 @@ get_github_log(
 )
 ```
 
+| Parameter              | Type     | Description   |
+|------------------------|----------|---------------|
+| `GITHUB_ACCESS_TOKEN`  | `str`    | Personal GitHub personal access token for API authentication. |
+| `repo_owner`           | `str`    | Owner of the GitHub repository from which to extract issue activity data. |
+| `repo_name`            | `str`    | Name of the repository from which to extract issue activity data. |
+| `max_issues`           | `int`    | Limits the number of issues to extract. If `None`, data for all closed issues will be collected. |
+| `save_after_num_issues`| `int`    | Enables intermediate saving after processing this many issues. Prevents data loss from interruptions. Defaults to 5000. |
+| `quack_db`             | `str`    | Path to the DuckDB file where data will be stored using the Stack’t relational schema. A new file is created if it doesn't exist yet. |
+| `schema`               | `str`    | Name of the schema in the DuckDB database file where data will be written. If schema already exists, it will be cleared first. |
+
+
 ### Generating a GitHub Access Token (`GITHUB_ACCESS_TOKEN`)
 To generate a GitHub access token, go to [GitHub Developer Settings](https://github.com/settings/tokens), click **"Generate new token (classic)"**, and proceed without selecting any scopes (leave all checkboxes unchecked). Copy the token and store it securely, as it won’t be shown again.
 

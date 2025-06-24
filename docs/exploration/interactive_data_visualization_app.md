@@ -20,6 +20,12 @@ start_visualization_app(
 ### ⚙️ Step 1: `prepare_graph_data()`
 Transforms the OCED data into a structure that is optimized for interactive graph visualization. You only need to this once for each dataset.
 
+| Parameter     | Type   | Description                                                  |
+|---------------|--------|--------------------------------------------------------------|
+| `quack_db`    | `str`  | Path to the DuckDB database file containing the input data.  |
+| `schema_in`   | `str`  | Name of the schema in the DuckDB file that contains the input data. Needs to be stored using in Stack't relational schema. |
+| `schema_out`  | `str`  | Name of the schema where the table `graph_base_table`, used by the interactive exploration app,  will be created. If the schema already exists, it will be cleared first. |
+
 #### Input data (`quack_db`, `schema_in`)
 The input data for this function needs to be stored in a DuckDB database file using the Stack't relational schema. The path to the DuckDB file is defined in `quack_db`. The schema in which the data is stored is defined by `schema_in`.
 
@@ -29,6 +35,13 @@ A table named `graph_base_table` will be created in the schema `schema_out`. If 
 
 ### ▶️ Step 2: `start_visualization_app()`
 Launches a local interactive app in your default browser to explore your OCED data.
+
+| Parameter     | Type   | Description                                                  |
+|---------------|--------|--------------------------------------------------------------|
+| `quack_db`    | `str`  | Path to the DuckDB database file containing the input data.  |
+| `schema`      | `str`  | Name of the schema in the DuckDB file that contains the table `graph_base_table`. Needs to be created first by the function `prepare_graph_data`. |
+| `host`        | `str`  | *(Optional)* Host address to serve the visualization app. Defaults to "127.0.0.1". |
+| `port`        | `int`  | *(Optional)* Port number for the app. Default to "5555". Use different ports to run multiple instances simultaneously.  |
 
 #### Input data (`quack_db`, `schema`)
 This function uses as input data the `graph_base_table` created by the previous function. Make sure you point to the correct DuckDB database file and schema.
