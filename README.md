@@ -3,7 +3,7 @@ PyStack't (`pystackt`) is a Python package based on [Stack't](https://github.com
 
 
 ## 📦 Installation  
-You can install `pystackt` using pip:  
+PyStack't is published on [PyPi](https://pypi.org/project/pystackt/) and can be installed using pip:  
 
 ```sh
 pip install pystackt
