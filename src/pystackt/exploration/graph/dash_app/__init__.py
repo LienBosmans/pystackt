@@ -36,4 +36,4 @@ def start_visualization_app(quack_db:str,schema:str,host:str='127.0.0.1',port:in
 
     # Run app and open it in default browser
     webbrowser.open(f"http://{host}:{port}/")   # opens app in default browser
-    app.run(debug=False, port=port, use_reloader=False) # starts app
+    app.run(debug=False, host=host, port=port, use_reloader=False) # starts app

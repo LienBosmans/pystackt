@@ -11,6 +11,18 @@ PyStack't uses the Stack't relational schema to store object-centric event data.
 
 While any relational database can be used to store data in the Stack't relational schema, PyStack't uses [DuckDB](https://duckdb.org/) because it's open-source, fast and simple to use. (Think SQLite but for analytical workloads.)
 
+From DuckDB version 1.2.1 onwards, you can explore them using the [**UI extension**](https://duckdb.org/docs/stable/extensions/ui.html). Below code will load the UI by navigating to `http://localhost:4213` in your default browser.
+
+```python
+import duckdb
+
+with duckdb.connect("./stackt.duckdb") as quack:
+    quack.sql("CALL start_ui()")
+    input("Press Enter to close the connection...")
+```
+
+Alternatively, you can use a database manager. You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/dbeaver.html) to download and install **DBeaver** for easy access.
+
 
 ## Data extraction
 
