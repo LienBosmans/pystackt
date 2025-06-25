@@ -3,7 +3,7 @@ PyStack't (`pystackt`) is a Python package based on [Stack't](https://github.com
 
 
 ## 📦 Installation  
-PyStack't is published on [PyPi](https://pypi.org/project/pystackt/) and can be installed using pip:  
+PyStack't is published on [PyPi](https://pypi.org/project/pystackt/) and can be installed using pip.  
 
 ```sh
 pip install pystackt
@@ -11,7 +11,8 @@ pip install pystackt
 
 ## [📖 Documentation](https://lienbosmans.github.io/pystackt/)
 
-Detailled documentation can be found here: [View PyStack't Documentation](https://lienbosmans.github.io/pystackt/)
+-   [Extensive documentation](https://lienbosmans.github.io/pystackt/) is available via GitHub pages. 
+-   A [demo video on Youtube](https://youtu.be/AS8wI90wRM8) can walk you throught the different functionalities.
 
 ## 🔍 Viewing Data  
 PyStack't creates **DuckDB database files**. From DuckDB version 1.2.1 onwards, you can explore them using the [**UI extension**](https://duckdb.org/docs/stable/extensions/ui.html). Below code will load the UI by navigating to `http://localhost:4213` in your default browser.
