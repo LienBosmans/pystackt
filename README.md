@@ -72,3 +72,7 @@ export_to_ocel2(
     sqlite_db="./ocel2_stackt.sqlite"
 )
 ```
+
+## 👉 Contributing to PyStack't
+
+We welcome any improvements, big and small, as well as new functionality that supports data preparation for object-centric process mining! For more information, please read the [Contributing Guide](/CONTRIBUTING.md).
