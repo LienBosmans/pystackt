@@ -75,4 +75,4 @@ export_to_ocel2(
 
 ## 👉 Contributing to PyStack't
 
-We welcome any improvements, big and small, as well as new functionality that supports data preparation for object-centric process mining! For more information, please read the [Contributing Guide](/CONTRIBUTING.md).
+We welcome any improvements, big and small, as well as new functionality that supports data preparation for object-centric process mining! For more information, please read the [Contributing Guide](https://github.com/LienBosmans/pystackt/blob/main/CONTRIBUTING.md).
