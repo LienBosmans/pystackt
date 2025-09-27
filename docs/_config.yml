@@ -9,3 +9,6 @@ paper_title: "L. Bosmans, J. Peeperkorn, J. De Smedt, PyStack’t: Real-Life Dat
 
 demo_url: https://www.youtube.com/watch?v=AS8wI90wRM8&feature=youtu.be
 demo_title: "PyStack't Demo BPM 2025"
+
+pypi_url: https://pypi.org/project/pystackt/
+pypi_title: "pip install pystackt"
