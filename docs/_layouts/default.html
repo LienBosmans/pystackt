@@ -20,7 +20,7 @@
         <p>{{ site.description | default: site.github.project_tagline }}</p>
 
         {% if site.logo %}
-          <img src="{{site.logo | relative_url}}" alt="PyStack't logo" style="display:block; width:80%; max-height:200px;" />
+          <img src="{{site.logo | relative_url}}" alt="PyStack't logo" style="display:block; width:80%; height:auto; max-height:200px;" />
         {% endif %}
 
         <p class="view"><a href="{{ site.github.repository_url }}">View the project on GitHub <small>{{ site.github.repository_nwo }}</small></a></p>
