@@ -9,7 +9,7 @@ PyStack't (`pip install pystackt`) is a Python package that supports data prepar
 
 PyStack't uses the Stack't relational schema to store object-centric event data. This schema was created specifically to support the data preparation stage, taking into account data engineering best practices. For more information on the design of Stack't, we recommend the paper [Dynamic and Scalable Data Preparation for Object-Centric Process Mining](https://arxiv.org/abs/2410.00596).
 
-![PyStack't has a modular design.](images/pystackt_architecture.png)
+![PyStack't has a modular design.](assets/images/pystackt_architecture.png)
 
 While any relational database can be used to store data in the Stack't relational schema, PyStack't uses [DuckDB](https://duckdb.org/) because it's open-source, fast and simple to use. (Think SQLite but for analytical workloads.)
 
