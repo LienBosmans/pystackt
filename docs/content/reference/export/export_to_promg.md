@@ -38,4 +38,4 @@ Afterwards all tables in `schema_out` will be copied as CSV files to a new folde
 ### ℹ️ About PromG
 
 - PromG is an open-source tool that enables process analytics through Event Knowledge Graphs (EKG).
-- Documentation, including tutorials for getting started, can be found here: https://promg-dev.github.io/promg-core/.
+- Documentation, including tutorials for getting started, can be found in the [PromG documentation](https://promg-dev.github.io/promg-core/).
