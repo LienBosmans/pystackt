@@ -21,7 +21,7 @@ The documentation is structured in four different parts:
 -   [📈 interactive data visualization app](content/reference/exploration/interactive_data_visualization_app.md)
 
 ### Output data
--   [🗺️ Overview of `get_github_log` output](content/reference/extract/get_github_log.md)
+-   [🗺️ Overview of `get_github_log` output](content/reference/extract/github_OCED.md)
 
 ## ❓ How-to guides
 -   [How to view DuckDB files?](content/howto/view_duckdb_files.md)
