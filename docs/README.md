@@ -1,52 +1,20 @@
 # PyStack't Documentation
 
-PyStack't (`pip install pystackt`) is a Python package that supports data preparation for object-centric process mining. It covers extraction of object-centric event data, storage of that data, (visual) data exploration, and export to OCED formats.
+PyStack't is a Python package that supports data preparation for object-centric process mining. It covers extraction of object-centric event data, storage of that data, (visual) data exploration, and export to popular OCED formats.
 
-[Source code](https://github.com/LienBosmans/pystackt) | [PyPi](https://pypi.org/project/pystackt/) | [Contributing Guide](https://github.com/LienBosmans/pystackt/blob/main/CONTRIBUTING.md)
+## 📚 Tutorials (start here)
 
+-   [Extracting your first object-centric event log from a GitHub repository](content/tutorials/tutorial_extracting_OCED.md)
 
-## Data Storage
+## 📖 Reference material
+-   [⛏️ `get_github_log`](content/reference/extract/get_github_log.md)
+-   [📤 `export_to_ocel2`](content/reference/export/export_to_ocel2.md)
+-   [📤 `export_to_promg`](content/reference/export/export_to_promg.md)
+-   [📈 `create_statistics_views`](content/reference/exploration/create_statistics_views.md)
+-   [📈 `interactive data visualization app`](content/reference/exploration/interactive_data_visualization_app.md)
 
-PyStack't uses the Stack't relational schema to store object-centric event data. This schema was created specifically to support the data preparation stage, taking into account data engineering best practices. For more information on the design of Stack't, we recommend the paper [Dynamic and Scalable Data Preparation for Object-Centric Process Mining](https://arxiv.org/abs/2410.00596).
+## ❓ How-to guides
+-   [How to view DuckDB files?](content/howto/view_duckdb_files.md)
 
-![PyStack't has a modular design.](assets/images/pystackt_architecture.png)
-
-While any relational database can be used to store data in the Stack't relational schema, PyStack't uses [DuckDB](https://duckdb.org/) because it's open-source, fast and simple to use. (Think SQLite but for analytical workloads.)
-
-From DuckDB version 1.2.1 onwards, you can explore them using the [**UI extension**](https://duckdb.org/docs/stable/extensions/ui.html). Below code will load the UI by navigating to `http://localhost:4213` in your default browser.
-
-```python
-import duckdb
-
-with duckdb.connect("./stackt.duckdb") as quack:
-    quack.sql("CALL start_ui()")
-    input("Press Enter to close the connection...")
-```
-
-Alternatively, you can use a database manager. You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/dbeaver.html) to download and install **DBeaver** for easy access.
-
-
-## Data extraction
-
-Extracting data from different systems is an important part of data preparation. While PyStack't does not include all functionality that a data stack offers (incremental ingests, scheduling refreshes, monitoring data pipelines...), it aims to provide simple-to-use methods to get real-life data for your object-centric process mining adventures.
-
-### ⛏️ List of data extraction functionality
-- [`get_github_log`](extract/get_github_log.md)
-
-
-## Data export
-
-The Stack't relational schema is intended as an intermediate storage hub. PyStack't provides export functionality to export the data to specific OCED formats that can be used by process mining applications and algorithms. This decoupled set-up has as main advantage that any future data source can be exported to all supported data formats, and any future OCED format can be combined with existing data extraction functionality.
-
-### 📤 List of data export functionality
-- [`export_to_ocel2`](export/export_to_ocel2.md)
-- [`export_to_promg`](export/export_to_promg.md)
-
-
-## Data exploration
-
-Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, the latest release includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
-
-### 📈 List of data exploration functionality
-- [`create_statistics_views`](exploration/create_statistics_views.md)
-- [`interactive data visualization app`](exploration/interactive_data_visualization_app.md)
+## 💡 Behind-the-scenes
+-   [About the design of PyStack't](content/explained/pystackt_design.md)

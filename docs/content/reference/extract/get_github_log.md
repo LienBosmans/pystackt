@@ -1,4 +1,4 @@
-# ⛏️🐙 Extracting object-centric event logs from GitHub (`get_github_log`)
+# ⛏️🐙 `get_github_log`: Extracting object-centric event logs from GitHub
 
 ## 📝 Example
 ```python
@@ -76,8 +76,6 @@ To explore the data, you'll need a database manager. You can follow this [DuckDB
 | Commit  | **sha**             | Unique identifier (hash) of the commit.               |
 | Commit  | **commit_message**  | Commit message describing the changes.                |
 | Commit  | **url**             | URL to view the commit on GitHub.                     |
-
-
 
 > **Note:** "Committers" do not have user attributes.  
 

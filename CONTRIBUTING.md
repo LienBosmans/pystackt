@@ -33,7 +33,7 @@ Do you have an idea to extend PyStack't with extra functionality? Awesome! Pleas
 -   We try to limit the number of external dependencies.
     -   For performant data transformations, please use [DuckDB](https://duckdb.org/docs/stable/) (SQL) or [Polars](https://docs.pola.rs/) (DataFrame).
     -   For (interactive) visualizations, please use [Matplotlib](https://matplotlib.org/) or [Dash](https://dash.plotly.com/).
--   Every PyStack't function reads from or writes to a DuckDB database file that uses the [Stack't relational schema](#stackt-relational-schema).
+-   Every PyStack't function reads from or writes to a DuckDB database file that uses the [Stack't relational schema](/docs/content/explained/pystackt_design.md).
     -   New functionality must also be compatible with DuckDB files with the Stack't relational schema.
     -   If the Stack't relational schema does not fit your use-case, and you want to propose an improvement, please reach out directly to [Lien Bosmans](mailto:lienbosmans@live.com).
 
@@ -45,7 +45,7 @@ Example: GitHub extractor [ [code](/src/pystackt/extractors/github/) | [docs](/d
 What is expected:
 1.  Choose a publicly available data source that contains real-life event data.
 1.  Figure out how the source data is structured, how the API works, ...
-1.  Map the data to the [Stack't relational schema](#stackt-relational-schema).
+1.  Map the data to the [Stack't relational schema](/docs/content/explained/pystackt_design.md).
 1.  Clean up your code. Save it in a new subfolder of [/src/pystackt/extractors/](/src/pystackt/extractors/).
     -   Re-use existing functionality when possible.
     -   Write modular functions.
@@ -68,7 +68,7 @@ Please note that the exported data format should be **object-centric** and **sup
 
 What is expected:
 1.  Choose an object-centric event data format.
-1.  Map the [Stack't relational schema](#stackt-relational-schema) to your chosen data format.
+1.  Map the [Stack't relational schema](/docs/content/explained/pystackt_design.md) to your chosen data format.
 1.  Clean up your code. Save it in a new subfolder of [/src/pystackt/exporters/](/src/pystackt/exporters/).
     -   Re-use existing functionality when possible.
     -   Write modular functions.
@@ -86,7 +86,7 @@ What is expected:
 Data preparation is definitely more than simply extracting and exporting data, so we also welcome additional functionality that support activities like data exploration, data cleaning, data filtering, ...
 
 The previously discussed items still apply:
-1.  Start from the [Stack't relational schema](#stackt-relational-schema) in a DuckDB file.
+1.  Start from the [Stack't relational schema](/docs/content/explained/pystackt_design.md) in a DuckDB file.
     -   If the Stack't relational schema does not work with the application you have in mind, include a function to prepare the data first. ([example](/src/pystackt/exploration/graph/data_prep/))
 1.  Clean up your code. Document your code. Test your code.
 1.  Write end-user documentation.
@@ -106,89 +106,3 @@ Simply create a pull request (PR)! Some good practices to consider:
         -   documentation of one function + code improvements of another function
 -   Write meaningful commit messages. 
 -   Don't combine independent changes in the same commit.
-
-
-## Stack't relational schema
-
-The Stack't relational schema describes how to store object-centric event data in a relational database using a fixed set of tables and table columns. This absence of any schema changes makes the format well-suited to act as a central data hub, enabling the modular design of PyStack't.
-
-An overview of the tables and columns is included in this document. For more information on the design choices and the proof-of-concept implementation [Stack't](https://github.com/LienBosmans/stack-t), we recommend reading the paper [Dynamic and Scalable Data Preparation for Object-Centric Process Mining](https://arxiv.org/abs/2410.00596).
-
-![PyStack't has a modular design.](/docs/pystackt_architecture.png)
-
-**Event-related tables**. To maintain flexibility and support dynamic changes, event types and their attribute definitions are stored in rows rather than being defined by table and column names. This approach enables the use of the exact same tables across all processes, reducing the impact of schema modifications. Changing an event type involves updating foreign keys rather than moving data to different tables, and attributes can be added or removed without altering the schema.
-- Table `event_types` contains an entry for each unique event type. \
-    Columns: 
-    -   `id` is the primary key.
-    -   `description` should be human-readable.
--   Table `event_attributes` stores entries for each unique event attribute. \
-    Columns:
-    -   `id` is the primary key.
-    -   `event_type_id` is a foreign key referencing table `event_types`.
-    -   `description` should be human-readable.
-    -   `datatype` of the attribute (integer, varchar, timestamp, ...) of the attribute.
--   Table `events` records details for each event. \
-    Columns:
-    -   `id` is the primary key.
-    -   `event_type_id` is a foreign key referencing table `event_types`.
-    -   `timestamp`, preferably using UTC time zone.
-    -   `description` should be human-readable.
--   Table `event_attribute_values` stores all attribute values for different events. This setup decouples events and their attributes by storing each attribute value in a new row, facilitating support for late-arriving data points. \
-    Columns:
-    -   `id` is the primary key.
-    -   `event_id` is a foreign key referencing table `events`.
-    -   `event_attribute_id` is a foreign key referencing table `event_attributes`.
-    -   `attribute_value` is the value of the attribute. This value should match the datatype of the attribute.
-
-**Object-related tables** also leverage row-based storage to manage attributes independently. This approach reduces the number of duplicate or NULL values significantly when attributes are updated asynchronously and frequently.
--   Table `object_types` records entries for each unique object type.\
-    Columns:
-    -   `id` is the primary key.
-    -   `description` should be human-readable
--   Table `object_attributes` contains entries for each unique object attribute. \
-    Columns:
-    -   `id` is the primary key.
-    -   `object_type_id` is a foreign key referencing table `object_types`.
-    -   `description` should be human-readable.
-    -   `datatype` (integer, varchar, timestamp, ...) of the attribute.
--   Table `object` stores details for each object.\
-    Columns:
-    -   `id` is the primary key.
-    -   `object_type_id` is a foreign key referencing table `object_types`.
-    -   `description` should be human-readable.
--   Table `object_attribute_values` records attribute values for objects.\
-    Columns: 
-    -   `id` is the primary key.
-    -   `object_id` is a foreign key referencing table `objects`.
-    -   `object_attribute_id` is a foreign key referencing table `object_attributes`.
-    -   `timestamp` indicates when the attribute was updated. Timestamps are preferably stored using the UTC time zone.
-    -   `attribute_value` is the updated value of the attribute. This value should match the datatype of the attribute.
-
-**Relation-related tables** serve as bridging tables to manage the different many-to-many relations between events and objects. The qualifier definitions are stored separately to minimize the impact of renaming them in case of changing business requirements 
--   Table `relation_qualifiers` stores qualifier definitions. In cases where relation qualifiers are not available in the source data, a dummy qualifier can be introduced.\
-    Columns
-    -   `id` is the primary key.
-    -   `description` should be human-readable.
-    -   `datatype` (integer, varchar, timestamp, ...) of the attribute.
--   Table `object_to_object` stores (dynamic) relations between objects.\
-    Columns:
-    -   `id` is the primary key.
-    -   `source_object_id` is a foreign key referencing table `objects`.
-    -   `target_object_id` is a foreign key referencing table `objects`.
-    -   `timestamp` indicates when the relationship became active. To signify the end of an object-to-object relationship, a NULL value is used for the qualifier value, rather than an end timestamp. This design choice facilitates append-only data ingestion. Timestamps are preferably stored using the UTC time zone.
-    -   `qualifier_id` is a foreign key referencing table `qualifiers`.
-    -   `qualifier_value` provides additional relationship details. This value should match the datatype of the qualifier.
--   Table `event_to_object` stores relations between events and objects.\
-    Columns:
-    -   `id` is the primary key.
-    -   `event_id` is a foreign key referencing table `events`.
-    -   `object_id` is a foreign key referencing table `objects`.
-    -   `qualifier_id` is a foreign key referencing table `qualifiers`.
-    -   `qualifier_value` provides additional relationship details. This value should match the datatype of the qualifier.
--   Table `event_to_object_attribute_value` stores relations between events and changes to object attributes.\
-    Columns:
-    -   `id` is the primary key.
-    -   `event_id` is a foreign key referencing table `events`.
-    -   `object_attribute_value_id` is a foreign key referencing table `object_attribute_values`.
-    -   `qualifier_id` is a foreign key referencing table `qualifiers`.
-    -   `qualifier_value` provides additional relationship details. This value should match the datatype of the qualifier.
