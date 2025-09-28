@@ -40,7 +40,7 @@ Do you have an idea to extend PyStack't with extra functionality? Awesome! Pleas
 
 ### Data extractors
 
-Example: GitHub extractor [ [code](/src/pystackt/extractors/github/) | [docs](/docs/extract/get_github_log.md) ]
+Example: GitHub extractor [ [code](/src/pystackt/extractors/github/) | [docs](/docs/content/reference/extract/get_github_log.md) ]
 
 What is expected:
 1.  Choose a publicly available data source that contains real-life event data.
@@ -52,17 +52,19 @@ What is expected:
     -   Include error handling. 
     -   Use doc strings and in-line comments.
 1.  Test your code.
-1.  Write end-user documentation. Add it as a markdown file in the folder [/docs/extract/](/docs/extract/). The documentation should include
-    -   code snippet with example
-    -   table that explains all parameters of the function
-    -   explanation on how to generate credentials to connect to the data source (if relevant)
-    -   description of which data is extracted
-    -   (link to) explanation of how the extracted data is allowed to be used
+1.  Write reference documentation. Add it as markdown files in the folder [/docs/content/reference/extract/](/docs/content/reference/extract/).  
+    -   The function documentation should include
+        -   code snippet with example
+        -   table that explains all parameters of the function
+        -   explanation on how to generate credentials to connect to the data source (if relevant)
+        -   (link to) explanation of how the extracted data is allowed to be used
+    -   The output data documentation should include
+        -   description of which data is extracted
 
 
 ### Data exporters
 
-Example: OCEL 2.0 [ [code](/src/pystackt/exporters/ocel2/) | [docs](/docs/export/export_to_ocel2.md) ]
+Example: OCEL 2.0 [ [code](/src/pystackt/exporters/ocel2/) | [docs](/docs/content/reference/export/export_to_ocel2.md) ]
 
 Please note that the exported data format should be **object-centric** and **supported by at least one tool** (software, application, Python package, script, ...) that is open-source (*preferred*) or offers a free license for developpers / students / personal use.
 
@@ -75,7 +77,7 @@ What is expected:
     -   Include error handling. 
     -   Use doc strings and in-line comments.
 1.  Test your code.
-1.  Write end-user documentation. Add it as a markdown file in the folder [/docs/export/](/docs/export/). The documentation should include
+1.  Write end-user documentation. Add it as a markdown file in the folder [/docs/content/reference/export/](/docs/content/reference/export/). The documentation should include
     -   code snippet with example
     -   table that explains all parameters of the function
     -   overview of any information loss that happens when exporting to this format
