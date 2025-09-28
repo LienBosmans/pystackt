@@ -1,0 +1,17 @@
+theme: jekyll-theme-minimal
+
+title: PyStack't Documentation
+description: "Real-life data for object-centric processing mining"
+logo: /assets/images/pystackt_logo_black_circle_small.png
+
+paper_url: https://ceur-ws.org/Vol-4032/paper-28.pdf
+paper_title: "L. Bosmans, J. Peeperkorn, J. De Smedt, PyStack’t: Real-Life Data for Object-Centric Process Mining"
+
+demo_url: https://www.youtube.com/watch?v=AS8wI90wRM8&feature=youtu.be
+demo_title: "PyStack't Demo BPM 2025"
+
+pypi_url: https://pypi.org/project/pystackt/
+pypi_title: "pip install pystackt"
+
+contributing_url: https://github.com/LienBosmans/pystackt/blob/main/CONTRIBUTING.md
+contributing_title: "Contributing guide"

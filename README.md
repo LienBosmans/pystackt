@@ -9,28 +9,15 @@ PyStack't is published on [PyPi](https://pypi.org/project/pystackt/) and can be 
 pip install pystackt
 ```
 
-## [📖 Documentation](https://lienbosmans.github.io/pystackt/)
+## 📖 Documentation
 
 -   [Extensive documentation](https://lienbosmans.github.io/pystackt/) is available via GitHub pages. 
 -   A [demo video on Youtube](https://youtu.be/AS8wI90wRM8) can walk you throught the different functionalities.
-
-## 🔍 Viewing Data  
-PyStack't creates **DuckDB database files**. From DuckDB version 1.2.1 onwards, you can explore them using the [**UI extension**](https://duckdb.org/docs/stable/extensions/ui.html). Below code will load the UI by navigating to `http://localhost:4213` in your default browser.
-
-```python
-import duckdb
-
-with duckdb.connect("./stackt.duckdb") as quack:
-    quack.sql("CALL start_ui()")
-    input("Press Enter to close the connection...")
-```
-
-Alternatively, you can use a database manager. You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/dbeaver.html) to download and install **DBeaver** for easy access.
-
+-   Our BPM 2025 demo paper [PyStack't: Real-Life Data for Object-Centric Process Mining](https://ceur-ws.org/Vol-4032/paper-28.pdf) is available on CEUR.
 
 ## 📝 Examples
 
-### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](https://lienbosmans.github.io/pystackt/extract/get_github_log.html))
+### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](https://lienbosmans.github.io/pystackt/content/reference/extract/get_github_log.html)
 ```python
 from pystackt import *
 
@@ -44,7 +31,7 @@ get_github_log(
 )
 ```
 
-### 📈 Interactive data exploration ([`start_visualization_app`](https://lienbosmans.github.io/pystackt/exploration/interactive_data_visualization_app.html))
+### 📈 Interactive data exploration ([`start_visualization_app`](https://lienbosmans.github.io/pystackt/content/reference/exploration/interactive_data_visualization_app.html))
 
 ```python
 from pystackt import *
@@ -61,7 +48,7 @@ start_visualization_app(
 )
 ```
 
-### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](https://lienbosmans.github.io/pystackt/export/export_to_ocel2.html))
+### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](https://lienbosmans.github.io/pystackt/content/reference/export/export_to_ocel2.html)
 ```python
 from pystackt import *
 
