@@ -2,6 +2,12 @@
 
 PyStack't is a Python package that supports data preparation for object-centric process mining. It covers extraction of object-centric event data, storage of that data, (visual) data exploration, and export to popular OCED formats.
 
+The documentation is structured in four different parts: 
+-   [Tutorials](#-tutorials-start-here): hands-on lessons for beginners
+-   [Reference material](#-reference-material): technical descriptions
+-   [How-to guides](#-how-to-guides): practical directions
+-   [Behind-the-scenes](#-behind-the-scenes): context and background
+
 ## 📚 Tutorials (start here)
 
 -   [Extracting your first object-centric event log from a GitHub repository](content/tutorials/tutorial_extracting_OCED.md)
