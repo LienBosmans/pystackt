@@ -41,14 +41,5 @@ Two SQL views are created in the schema defined by `schema_out`. They contain so
 If `schema_out` already exists, it will be cleared before the new views are created.
 
 ### 🔍 Viewing Data  
-PyStack't creates **DuckDB database files**. From DuckDB version 1.2.1 onwards, you can explore them using the [**UI extension**](https://duckdb.org/docs/stable/extensions/ui.html). Below code will load the UI by navigating to `http://localhost:4213` in your default browser.
 
-```python
-import duckdb
-
-with duckdb.connect("./stackt.duckdb") as quack:
-    quack.sql("CALL start_ui()")
-    input("Press Enter to close the connection...")
-```
-
-Alternatively, you can use a database manager. You can follow this [DuckDB guide](https://duckdb.org/docs/guides/sql_editors/dbeaver.html) to download and install **DBeaver** for easy access.
+The article [How to view DuckDB files](../../howto/view_duckdb_files.md) explains how you can view the result.
