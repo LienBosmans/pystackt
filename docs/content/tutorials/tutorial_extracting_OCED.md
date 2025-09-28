@@ -1,7 +1,6 @@
 # Tutorial: Extracting your first object-centric event log from a GitHub repository
 
-In this tutorial, you’ll extract an **object-centric event log** from a real GitHub repository.  
-You don’t need to know much about process mining or GitHub yet — we’ll walk through it step by step.  
+In this tutorial, you’ll extract an **object-centric event log** from a real GitHub repository. You don’t need to know much about process mining or GitHub yet — we’ll walk through it step by step.  
 
 By the end, you will:
 - Install and use **PyStack’t**, a Python library for extracting object-centric event data.
