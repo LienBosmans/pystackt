@@ -103,4 +103,4 @@ The Stack't relational schema is intended as an intermediate storage hub. PyStac
 
 ## Data exploration
 
-Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, tit includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
+Dispersing process data across multiple tables makes exploring object-centric event data less straightforward compared to traditional process mining. PyStack't aims to bridge this gap by providing dedicated data exploration functionality. Notably, it includes an interactive data exploration app that runs locally and works out-of-the-box with any OCED data structured in the Stack't relational schema.
