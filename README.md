@@ -17,7 +17,7 @@ pip install pystackt
 
 ## 📝 Examples
 
-### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](https://lienbosmans.github.io/pystackt/content/reference/extract/get_github_log.html)
+### ⛏️🐙 Extract object-centric event log from GitHub repo ([`get_github_log`](https://lienbosmans.github.io/pystackt/content/reference/extract/get_github_log.html))
 ```python
 from pystackt import *
 
@@ -48,7 +48,7 @@ start_visualization_app(
 )
 ```
 
-### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](https://lienbosmans.github.io/pystackt/content/reference/export/export_to_ocel2.html)
+### 📤 Export to OCEL 2.0 ([`export_to_ocel2`](https://lienbosmans.github.io/pystackt/content/reference/export/export_to_ocel2.html))
 ```python
 from pystackt import *
 
