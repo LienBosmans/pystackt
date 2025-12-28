@@ -4,7 +4,7 @@ import time, math                                   # Used to provide feedback o
 from datetime import datetime                       # Used to provide feedback on how long data extraction is taking.
 from github.GithubException import GithubException  # Used to skip issues instead of failing in case of unexpected GitHub API status response
 
-from pystackt.utils import (
+from pystackt.utils.duckdb_helpers import (
     _clear_schema
 )
 
@@ -14,7 +14,7 @@ from pystackt.extractors.github.get_data import (  # uses the PyGithub Python li
     _get_events
 )
 
-from pystackt.extractors.github.class_definitions import ( # defines custom classes to store data (corresponds to final tables)
+from pystackt.utils.class_definitions import ( # defines custom classes to store data (corresponds to final tables)
     _initiate_global_id
 )
 

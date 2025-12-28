@@ -1,4 +1,4 @@
-from pystackt.utils import (
+from pystackt.utils.duckdb_helpers import (
     _clear_schema
 )
 

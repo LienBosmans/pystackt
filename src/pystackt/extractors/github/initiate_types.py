@@ -1,4 +1,4 @@
-from pystackt.extractors.github.class_definitions import *
+from pystackt.utils.class_definitions import *
 
 def _initiate_object_types() -> dict:
     """Initiates the object types `issue`, `user`, `team`, `commit`."""

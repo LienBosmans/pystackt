@@ -1,4 +1,4 @@
-from pystackt.extractors.github.class_definitions import *
+from pystackt.utils.class_definitions import *
 from pystackt.extractors.github.get_data import _get_user_data
 import json
 

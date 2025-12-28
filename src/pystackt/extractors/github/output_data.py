@@ -1,4 +1,4 @@
-from pystackt.extractors.github.class_definitions import *
+from pystackt.utils.class_definitions import *
 import polars as pl
 import duckdb
 
