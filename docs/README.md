@@ -28,3 +28,4 @@ The documentation is structured in four different parts:
 
 ## 💡 Behind-the-scenes
 -   [About the design of PyStack't](content/explained/pystackt_design.md)
+-   [Object-centric event data mapping](content/explained/oced_mapping.md)
