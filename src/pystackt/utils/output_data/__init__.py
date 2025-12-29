@@ -1,6 +1,8 @@
 from pystackt.utils.class_definitions import *
+from pystackt.utils.duckdb_helpers import _clear_schema
 import polars as pl
 import duckdb
+from datetime import datetime
 
 def _extract_dataframe(table:dict) -> pl.DataFrame:
     """Converts a dictionary of objects into a table (as a dataframe)."""
@@ -74,3 +76,35 @@ def _get_sql_statement(table_name:str,is_empty_table:bool,df_name:str="df_record
        select_statement = "select " + ",".join([f"{column[0]}::{column[1]} as {column[0]}" for column in columns]) + f" from {df_name}"
 
     return select_statement
+
+
+def _store_result(object_types:dict,object_attributes:dict,objects:dict,object_attribute_values:dict,
+                  event_types:dict,event_attributes:dict,events:dict,event_attribute_values:dict,
+                  relation_qualifiers:dict,event_to_object:dict,object_to_object:dict,event_to_object_attribute_value:dict,
+                  repo_owner:str,repo_name:str,quack_db:str="./quack.duckdb",schema:str="main") -> None:
+    ## Store the result
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
+    tables_to_store = [['object_types',object_types],
+                    ['object_attributes',object_attributes],
+                    ['objects',objects],
+                    ['object_attribute_values',object_attribute_values],
+                    ['event_types',event_types],
+                    ['events',events],
+                    ['event_attributes',event_attributes],
+                    ['event_attribute_values',event_attribute_values],
+                    ['relation_qualifiers',relation_qualifiers],
+                    ['event_to_object',event_to_object],
+                    ['object_to_object',object_to_object],
+                    ['event_to_object_attribute_value',event_to_object_attribute_value],
+                    ]
+    
+    _clear_schema(quack_db,schema)
+
+    for tbl in tables_to_store:
+        _dataframe_to_persistent_duckdb(
+            df_records=_extract_dataframe(tbl[1]),
+            table_name=tbl[0],
+            duckdb_file_name=quack_db,
+            schema_name=schema
+            )
+        print(f"    Table {tbl[0]} ({len(tbl[1])} records) done.")
