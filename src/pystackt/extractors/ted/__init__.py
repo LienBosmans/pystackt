@@ -11,12 +11,13 @@ from pystackt.extractors.ted.initiate_types import (    # contains pre-defined e
     _initiate_object_attributes
 )
 
-# from pystackt.extractors.ted.get_data import (      # uses SPARQL queries send to the web api of ted portal to get the data
-from get_data import (
+from pystackt.extractors.ted.get_data import (      # uses SPARQL queries send to the web api of ted portal to get the data
+# from get_data import (
     _get_procedures
 ) 
 
-from map_data import (
+from pystackt.extractors.ted.map_data import (      # maps dataframes extracted via API to custom class objects
+# from map_data import (
     _new_object_procedure
 )
 
