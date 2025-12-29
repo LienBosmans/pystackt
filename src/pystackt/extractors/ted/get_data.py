@@ -1,6 +1,4 @@
 import requests
-import json
-import duckdb
 import polars as pl
 
 def _get_query_result(query:str):
@@ -25,12 +23,12 @@ def _get_query_result(query:str):
         ])
         return df
     else:
-        print("Error in _get_url_response:\n", response.status_code, response.text)
+        print("Error in _get_query_result:\n", response.status_code, response.text)
         return None
 
 
-def _query_procedures_linked_to_org(legal_names:list):
-    '''Returns query for obtaining list of all procedures linked to organization
+def _get_procedures(legal_names:list):
+    '''Returns dataframe with all procedures linked to organization
     that appears in `legal_names`.'''
     formatted_names = ", ".join([f'"{name}"@en' for name in legal_names])
 
@@ -42,12 +40,13 @@ def _query_procedures_linked_to_org(legal_names:list):
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
     PREFIX ns3: <http://www.w3.org/ns/adms#>
 
-    SELECT ?procedureId ?procedureInternalId  ?procedureTitle ?procedureDescription ?procedureTypeUri ?procedureType
+    SELECT (MIN(?eSenderDispatchDate) AS ?earliestNoticeTimestamp) ?procedureId ?procedureInternalId  ?procedureTitle ?procedureDescription ?procedureTypeUri ?procedureType
 
     WHERE {{
         FILTER (?legalName IN ({formatted_names}) )
         ?noticeUri a epo:Notice ;
             epo:refersToProcedure ?procedureUri ;
+            epo:hasESenderDispatchDate ?eSenderDispatchDate ;
             epo:announcesRole [  
                 a ?role ; 
                     epo:playedBy [
@@ -79,10 +78,4 @@ def _query_procedures_linked_to_org(legal_names:list):
     ORDER BY ?procedureInternalId
     """
 
-    return query
-
-
-# legal_names = ["Imec EU Pilot line NV", "IMEC VZW"]
-# query = _query_procedures_linked_to_org(legal_names)
-# data = _get_query_result(query)
-# print(data)
+    return _get_query_result(query)
