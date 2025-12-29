@@ -208,8 +208,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,
                 event_to_object=event_to_object,
                 object_to_object=object_to_object,
                 event_to_object_attribute_value=event_to_object_attribute_value,
-                repo_owner=repo_owner,
-                repo_name=repo_name,
+                extracted_from_message=f"extracted from {repo_owner}/{repo_name} ",
                 quack_db=quack_db,
                 schema=schema
             )
@@ -230,8 +229,7 @@ def get_github_log(GITHUB_ACCESS_TOKEN:str,repo_owner:str,repo_name:str,
         event_to_object=event_to_object,
         object_to_object=object_to_object,
         event_to_object_attribute_value=event_to_object_attribute_value,
-        repo_owner=repo_owner,
-        repo_name=repo_name,
+        extracted_from_message=f"extracted from {repo_owner}/{repo_name} ",
         quack_db=quack_db,
         schema=schema
     )

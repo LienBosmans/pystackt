@@ -81,9 +81,9 @@ def _get_sql_statement(table_name:str,is_empty_table:bool,df_name:str="df_record
 def _store_result(object_types:dict,object_attributes:dict,objects:dict,object_attribute_values:dict,
                   event_types:dict,event_attributes:dict,events:dict,event_attribute_values:dict,
                   relation_qualifiers:dict,event_to_object:dict,object_to_object:dict,event_to_object_attribute_value:dict,
-                  repo_owner:str,repo_name:str,quack_db:str="./quack.duckdb",schema:str="main") -> None:
+                  extracted_from_message:str="",quack_db:str="./quack.duckdb",schema:str="main") -> None:
     ## Store the result
-    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data extracted from {repo_owner}/{repo_name} to DuckDB database file {quack_db}, schema {schema}.")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Saving object-centric event data {extracted_from_message}to DuckDB database file {quack_db}, schema {schema}.")
     tables_to_store = [['object_types',object_types],
                     ['object_attributes',object_attributes],
                     ['objects',objects],
