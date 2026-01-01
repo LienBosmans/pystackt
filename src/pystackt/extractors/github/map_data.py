@@ -1,7 +1,10 @@
+import json
 from pystackt.utils.class_definitions import *
 from pystackt.extractors.github.get_data import _get_user_data
-from pystackt.utils.map_data import _get_or_create_event_type
-import json
+from pystackt.utils.map_data import (
+    _get_or_create_event_type,
+    _get_or_create_event_attribute
+)
 
 def _new_object_issue(issue_data:dict,object_types:dict,objects:dict,object_attributes:dict,object_attribute_values:dict) -> Object:
     '''Returns a new object of type `issue` and adds it to the objects dictionary.
@@ -262,7 +265,6 @@ def _new_timeline_event(issue_object,timeline_event_data:dict,event_types:dict,e
     else:
         return new_event
 
-
 def _new_event_attributes(new_event:Event,event_data:dict,event_attributes:dict,event_types:dict,event_attribute_values:dict) -> None:
     """Sets the attributes of a new event and add them to the event_attribute_values dictionary."""
 
@@ -280,25 +282,3 @@ def _new_event_attributes(new_event:Event,event_data:dict,event_attributes:dict,
             event_attribute_values[new_event_attribute_value.id] = new_event_attribute_value
 
     return None
-
-
-def _get_or_create_event_attribute(attribute_description:str,event_type_description:str,event_types:dict,event_attributes:dict) -> EventAttribute:
-    """Use `attribute_description` and `event_type.description` as key to retrieve item from `event_attributes`.
-     If item does not exist, create new EventAttribute object and add it to `event_attributes`."""
-    
-    key = f"{event_type_description}:{attribute_description}"
-    event_attribute = event_attributes.get(key)
-
-    if event_attribute is None:
-        event_type = _get_or_create_event_type(event_type_description,event_types)
-
-        if attribute_description in ('author_association'):
-            datatype = 'varchar'
-        else: # catch-all just in case
-            print(f"Unknown attribute_description '{attribute_description}' detected, defaulted to 'string' as datatype. Please add this attribute in the function `get_or_create_event_attribute()` for next time.")
-            datatype = 'varchar'
-
-        event_attribute = EventAttribute(event_type,attribute_description,datatype)
-        event_attributes[key] = event_attribute
-
-    return event_attribute
