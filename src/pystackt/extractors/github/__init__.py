@@ -27,11 +27,14 @@ from pystackt.extractors.github.initiate_types import (    # contains pre-define
 from pystackt.extractors.github.map_data import (  # maps the data extracted via API to custom class objects
     _new_object_issue,
     _new_event_created,
-    _link_event_to_object,
     _get_object_user, 
-    _link_object_to_object, 
     _new_timeline_event,
     _new_object_commit
+)
+
+from pystackt.utils.map_data import ( # maps the data extracted via API to custom class objects
+    _link_event_to_object,
+    _link_object_to_object
 )
 
 from pystackt.utils.output_data import (   # converts custom class objects to dataframes (polars) & stores them in DuckDB database file
