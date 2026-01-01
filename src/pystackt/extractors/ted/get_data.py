@@ -110,3 +110,50 @@ def _get_procedures(legal_names:list):
     """
 
     return _get_query_result(query)
+
+
+def _get_notices(procedure_uris:list):
+    '''Returns dataframe with all notices linked to procedure in `procedure_uris`.'''
+
+    formatted_uris = ", ".join([f'"{uri}"' for uri in procedure_uris])
+
+    query = f"""
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX ns3: <http://www.w3.org/ns/adms#>
+
+    SELECT 
+        ?procedureId
+        ?noticeUri
+        ?noticePublicationNumber
+        ?noticeType
+        ?noticeFormType
+        ?noticePublicationDate
+        ?noticeESenderDispatchDate
+
+    WHERE {{
+        ?procedureUri a epo:Procedure ;
+            ns3:identifier ?procedureIdentifier .
+
+        ?procedureIdentifier skos:notation ?procedureId .
+        FILTER(?procedureId in ( {formatted_uris} ) )
+    
+        ?noticeUri a epo:Notice ;
+            epo:refersToProcedure ?procedureUri ;
+            epo:hasNoticePublicationNumber ?noticePublicationNumber ;
+            epo:hasNoticeType ?noticeTypeUri ;
+            epo:hasFormType ?noticeFormTypeUri ;
+            epo:hasPublicationDate ?noticePublicationDate ;
+            epo:hasESenderDispatchDate ?noticeESenderDispatchDate .
+    
+        ?noticeTypeUri skos:prefLabel ?noticeType .
+  	    FILTER(lang(?noticeType) = "en")    
+
+        ?noticeFormTypeUri skos:prefLabel ?noticeFormType .
+        FILTER(lang(?noticeFormType) = "en")
+    }}
+
+    ORDER BY ?procedureId ?noticePublicationDate
+    """
+
+    return _get_query_result(query)
