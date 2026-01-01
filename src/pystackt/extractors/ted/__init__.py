@@ -7,6 +7,7 @@ from pystackt.utils.class_definitions import (      # defines custom classes to 
 )
 
 from pystackt.extractors.ted.initiate_types import (    # contains pre-defined event/object/relation (attribute) types
+# from initiate_types import (
     _initiate_object_types,
     _initiate_object_attributes
 )
@@ -22,8 +23,6 @@ from pystackt.extractors.ted.map_data import (      # maps dataframes extracted 
 )
 
 from pystackt.utils.output_data import (   # converts custom class objects to dataframes (polars) and stores them in DuckDB database file
-    _dataframe_to_persistent_duckdb,
-    _extract_dataframe,
     _store_result
 )
 
@@ -101,5 +100,5 @@ def get_ted_log(org_legal_names:list,
     print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    All done!")
 
 
-legal_names = ["Imec EU Pilot line NV", "IMEC VZW"]
-get_ted_log(org_legal_names=legal_names)
+# legal_names = ["Imec EU Pilot line NV", "IMEC VZW"]
+# get_ted_log(org_legal_names=legal_names)

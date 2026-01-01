@@ -23,6 +23,9 @@ def _initiate_object_attributes(object_types:dict) -> dict:
                                  ['title','varchar'],
                                  ['description','varchar'],
                                  ['procedure_type','varchar'],
+                                 ['main_purpose','varchar'],
+                                 ['legal_basis','varchar'],
+                                 ['is_accelerated','boolean']
                                 ],
                     }
     object_attributes = {}

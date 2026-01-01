@@ -40,7 +40,17 @@ def _get_procedures(legal_names:list):
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
     PREFIX ns3: <http://www.w3.org/ns/adms#>
 
-    SELECT (MIN(?eSenderDispatchDate) AS ?earliestNoticeTimestamp) ?procedureId ?procedureInternalId  ?procedureTitle ?procedureDescription ?procedureTypeUri ?procedureType
+    SELECT 
+        (MIN(?eSenderDispatchDate) AS ?earliestNoticeTimestamp)
+        ?mainPurpose
+        ?legalBasis
+        ?isAccelerated
+        ?procedureId
+        ?procedureInternalId 
+        ?procedureTitle
+        ?procedureDescription
+        ?procedureTypeUri
+        ?procedureType
 
     WHERE {{
         FILTER (?legalName IN ({formatted_names}) )
@@ -61,21 +71,42 @@ def _get_procedures(legal_names:list):
                 epo:hasInternalIdentifier ?procedureInternalIdentifier ;
                 dcterms:title ?procedureTitle ;
                 dcterms:description ?procedureDescription ;
+                epo:hasPurpose ?procedurePurposeUri ;
+                epo:hasLegalBasis ?legalBasisUri ;
                 epo:hasProcedureType ?procedureTypeUri .
             FILTER(lang(?procedureTitle) = "en")
             FILTER(lang(?procedureDescription) = "en")
 
+            OPTIONAL {{ ?procedureUri epo:isAccelerated ?isAccelerated . }}
+
             ?procedureIdentifier skos:notation ?procedureId .
 
             ?procedureInternalIdentifier skos:notation ?procedureInternalId .
+
+            ?procedurePurposeUri epo:hasMainClassification ?purposeClassification .
+          	?purposeClassification skos:prefLabel ?mainPurpose .
+          	FILTER(lang(?mainPurpose) = "en")
+              
+            ?legalBasisUri skos:scopeNote ?legalBasis .
+          	FILTER(lang(?legalBasis) = "en")
 
             ?procedureTypeUri skos:prefLabel ?procedureType .
             FILTER(lang(?procedureType) = "en")
         }}
     }}
 
-    GROUP BY ?procedureId ?procedureInternalId ?procedureTitle ?procedureDescription ?procedureTypeUri ?procedureType
-    ORDER BY ?procedureInternalId
+    GROUP BY 
+        ?mainPurpose
+        ?legalBasis
+        ?isAccelerated
+        ?procedureId
+        ?procedureInternalId
+        ?procedureTitle
+        ?procedureDescription
+        ?procedureTypeUri
+        ?procedureType
+    ORDER BY 
+        ?procedureInternalId
     """
 
     return _get_query_result(query)

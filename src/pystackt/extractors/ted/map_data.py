@@ -24,8 +24,11 @@ def _new_procedure_attributes(object:Object,data:dict,object_attributes:dict,obj
                   ['procedure:internal_id','procedureInternalId'],
                   ['procedure:title','procedureTitle'],
                   ['procedure:description','procedureDescription'],
-                  ['procedure:procedure_type','procedureType']
-                  ]
+                  ['procedure:procedure_type','procedureType'],
+                  ['procedure:main_purpose','mainPurpose'],
+                  ['procedure:legal_basis','legalBasis'],
+                  ['procedure:is_accelerated','isAccelerated'],
+                 ]
 
     timestamp = data.get('earliestNoticeTimestamp')
 
