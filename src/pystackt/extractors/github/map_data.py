@@ -1,5 +1,6 @@
 from pystackt.utils.class_definitions import *
 from pystackt.extractors.github.get_data import _get_user_data
+from pystackt.utils.map_data import _get_or_create_event_type
 import json
 
 def _new_object_issue(issue_data:dict,object_types:dict,objects:dict,object_attributes:dict,object_attribute_values:dict) -> Object:
@@ -279,18 +280,6 @@ def _new_event_attributes(new_event:Event,event_data:dict,event_attributes:dict,
             event_attribute_values[new_event_attribute_value.id] = new_event_attribute_value
 
     return None
-
-
-def _get_or_create_event_type(description:str,event_types:dict) -> EventType:
-    """Use `description` as key to retrieve item from `event_types`.
-     If item does not exist, create new EventType object and add it to `event_types`."""
-    event_type = event_types.get(description)
-
-    if event_type is None:
-        event_type = EventType(description)
-        event_types[description] = event_type
-
-    return event_type
 
 
 def _get_or_create_event_attribute(attribute_description:str,event_type_description:str,event_types:dict,event_attributes:dict) -> EventAttribute:

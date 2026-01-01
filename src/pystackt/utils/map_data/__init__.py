@@ -15,3 +15,14 @@ def _link_object_to_object(from_object:Object,to_object:Object,timestamp,qualifi
     object_to_object[new_link.id] = new_link
 
     return  new_link
+
+def _get_or_create_event_type(description:str,event_types:dict) -> EventType:
+    """Use `description` as key to retrieve item from `event_types`.
+     If item does not exist, create new EventType object and add it to `event_types`."""
+    event_type = event_types.get(description)
+
+    if event_type is None:
+        event_type = EventType(description)
+        event_types[description] = event_type
+
+    return event_type
