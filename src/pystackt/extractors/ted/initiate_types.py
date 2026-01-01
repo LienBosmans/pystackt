@@ -47,10 +47,11 @@ def _initiate_object_attributes(object_types:dict) -> dict:
 
 
 def _initiate_relation_qualifiers() -> dict:
-    """Initiates the relation qualifiers `dispatched`."""
+    """Initiates the relation qualifiers `dispatched`, `published`, `refers_to`."""
 
     descriptions = [['dispatched','varchar'],
-                    ['published','varchar']
+                    ['published','varchar'],
+                    ['refers_to','varchar']
                    ]
     
     relation_qualifiers = {}

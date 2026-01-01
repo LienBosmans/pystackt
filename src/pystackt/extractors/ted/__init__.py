@@ -108,6 +108,7 @@ def get_ted_log(org_legal_names:list,
             publish_timestamp = row.get("noticePublicationDate")
 
             notice_object = _new_object_notice(row,object_types,objects,object_attributes,object_attribute_values)
+
             transmit_eform_event = _new_event_eform(row,event_types,events,event_attributes,event_attribute_values)
             _link_event_to_object(
                 event=transmit_eform_event,
@@ -117,6 +118,7 @@ def get_ted_log(org_legal_names:list,
                 relation_qualifiers=relation_qualifiers,
                 event_to_object=event_to_object
             )
+
             notice_event = _new_event_notice(row,event_types,events,event_attributes,event_attribute_values)
             _link_event_to_object(
                 event=notice_event,
@@ -125,6 +127,16 @@ def get_ted_log(org_legal_names:list,
                 description='notice issued publicly',
                 relation_qualifiers=relation_qualifiers,
                 event_to_object=event_to_object
+            )
+
+            _link_object_to_object(
+                from_object=notice_object,
+                to_object=procedure_object,
+                timestamp=transmit_eform_event.timestamp,
+                qualifier_name='refers_to',
+                description='notice refers to procedure',
+                relation_qualifiers=relation_qualifiers,
+                object_to_object=object_to_object
             )
         
 
