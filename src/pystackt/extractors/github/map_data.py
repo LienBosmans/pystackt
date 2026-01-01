@@ -188,8 +188,8 @@ def _new_commit_attributes(issue_object:Object,commit_event_data:dict,object_att
 
 
 def _new_event_created(issue_data:dict,event_types:dict,events:dict,event_attributes:dict,event_attribute_values:dict) -> Event:
-    '''Returns a new event of type `created` and adds it to the objects dictionary.
-    Next, calls function `new_issue_attributes` to create and store its attributes.'''
+    '''Returns a new event of type `created` and adds it to the events dictionary.
+    Next, calls function `_new_event_attributes` to create and store its attributes.'''
 
     description = f"create #{issue_data.get('number')}"
     timestamp = issue_data.get('created_at')
