@@ -30,8 +30,7 @@ def _get_query_result(query:str):
 def _get_procedures(legal_names:list):
     '''Returns dataframe with all procedures linked to organization
     that appears in `legal_names`.'''
-    formatted_names = ", ".join([f'"{name}"@en' for name in legal_names])
-
+    formatted_names = ", ".join([f'{name}' for name in legal_names])
 
     query = f"""
     PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
@@ -47,13 +46,13 @@ def _get_procedures(legal_names:list):
         ?isAccelerated
         ?procedureId
         ?procedureInternalId 
-        ?procedureTitle
-        ?procedureDescription
+        (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?procedureTitle), '":"', ?procedureTitle, '"') ; separator=",") AS ?procedureTitles)
+		(GROUP_CONCAT(DISTINCT CONCAT('"', lang(?procedureDescription), '":"', ?procedureDescription, '"') ; separator=",") AS ?procedureDescriptions)
         ?procedureTypeUri
         ?procedureType
 
     WHERE {{
-        FILTER (?legalName IN ({formatted_names}) )
+        FILTER (?legalName IN ( {formatted_names} ) )
         ?noticeUri a epo:Notice ;
             epo:refersToProcedure ?procedureUri ;
             epo:hasESenderDispatchDate ?eSenderDispatchDate ;
@@ -64,32 +63,33 @@ def _get_procedures(legal_names:list):
                         epo:hasLegalName ?legalName ;
                     ] 
             ] .
+      
+        ?procedureUri ns3:identifier ?procedureIdentifier .
+      	?procedureIdentifier skos:notation ?procedureId .
     
-        OPTIONAL {{
-            ?procedureUri a epo:Procedure ;
-                ns3:identifier ?procedureIdentifier ;
-                epo:hasInternalIdentifier ?procedureInternalIdentifier ;
-                dcterms:title ?procedureTitle ;
-                dcterms:description ?procedureDescription ;
-                epo:hasPurpose ?procedurePurposeUri ;
-                epo:hasLegalBasis ?legalBasisUri ;
-                epo:hasProcedureType ?procedureTypeUri .
-            FILTER(lang(?procedureTitle) = "en")
-            FILTER(lang(?procedureDescription) = "en")
-
-            OPTIONAL {{ ?procedureUri epo:isAccelerated ?isAccelerated . }}
-
-            ?procedureIdentifier skos:notation ?procedureId .
-
+        OPTIONAL {{ ?procedureUri dcterms:title ?procedureTitle . }}
+        OPTIONAL {{ ?procedureUri dcterms:description ?procedureDescription . }}
+        OPTIONAL {{ 
+            ?procedureUri epo:hasInternalIdentifier ?procedureInternalIdentifier . 
             ?procedureInternalIdentifier skos:notation ?procedureInternalId .
+        }}
+        OPTIONAL {{ ?procedureUri epo:isAccelerated ?isAccelerated . }}
 
+        OPTIONAL {{ 
+            ?procedureUri epo:hasPurpose ?procedurePurposeUri .
             ?procedurePurposeUri epo:hasMainClassification ?purposeClassification .
-          	?purposeClassification skos:prefLabel ?mainPurpose .
-          	FILTER(lang(?mainPurpose) = "en")
-              
+            ?purposeClassification skos:prefLabel ?mainPurpose .
+            FILTER(lang(?mainPurpose) = "en")
+        }}
+        
+        OPTIONAL {{
+            ?procedureUri epo:hasLegalBasis ?legalBasisUri .
             ?legalBasisUri skos:scopeNote ?legalBasis .
-          	FILTER(lang(?legalBasis) = "en")
-
+            FILTER(lang(?legalBasis) = "en")
+        }}
+        
+        OPTIONAL {{
+            ?procedureUri epo:hasProcedureType ?procedureTypeUri .
             ?procedureTypeUri skos:prefLabel ?procedureType .
             FILTER(lang(?procedureType) = "en")
         }}
@@ -101,8 +101,6 @@ def _get_procedures(legal_names:list):
         ?isAccelerated
         ?procedureId
         ?procedureInternalId
-        ?procedureTitle
-        ?procedureDescription
         ?procedureTypeUri
         ?procedureType
     ORDER BY 
@@ -112,48 +110,133 @@ def _get_procedures(legal_names:list):
     return _get_query_result(query)
 
 
-def _get_notices(procedure_uris:list):
-    '''Returns dataframe with all notices linked to procedure in `procedure_uris`.'''
+def _get_notices(procedure_ids:list):
+    '''Returns dataframe with all notices linked to procedure in `procedure_ids`.'''
 
-    formatted_uris = ", ".join([f'"{uri}"' for uri in procedure_uris])
+    formatted_ids = ", ".join([f'"{id}"' for id in procedure_ids])
 
     query = f"""
     PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
     PREFIX ns3: <http://www.w3.org/ns/adms#>
+    PREFIX dc: <http://purl.org/dc/elements/1.1/>
 
     SELECT 
         ?procedureId
         ?noticeUri
+        ?ojsIssueNumber
         ?noticePublicationNumber
         ?noticeType
+        ?noticeTypeDescription
         ?noticeFormType
         ?noticePublicationDate
         ?noticeESenderDispatchDate
+        (GROUP_CONCAT(DISTINCT CONCAT('"', ?announcesLotId, '"') ; separator=",") AS ?announcesLotIds)
+    	(GROUP_CONCAT(DISTINCT CONCAT('"', ?refersLotId, '"') ; separator=",") AS ?refersLotIds)
 
     WHERE {{
         ?procedureUri a epo:Procedure ;
             ns3:identifier ?procedureIdentifier .
 
         ?procedureIdentifier skos:notation ?procedureId .
-        FILTER(?procedureId in ( {formatted_uris} ) )
+        FILTER(?procedureId in ( {formatted_ids} ) )
     
         ?noticeUri a epo:Notice ;
             epo:refersToProcedure ?procedureUri ;
+            epo:hasOJSIssueNumber ?ojsIssueNumber ;
             epo:hasNoticePublicationNumber ?noticePublicationNumber ;
             epo:hasNoticeType ?noticeTypeUri ;
             epo:hasFormType ?noticeFormTypeUri ;
             epo:hasPublicationDate ?noticePublicationDate ;
             epo:hasESenderDispatchDate ?noticeESenderDispatchDate .
     
-        ?noticeTypeUri skos:prefLabel ?noticeType .
-  	    FILTER(lang(?noticeType) = "en")    
+        ?noticeTypeUri dc:identifier ?noticeType .
+             
+        ?noticeTypeUri skos:prefLabel ?noticeTypeDescription .
+  	    FILTER(lang(?noticeTypeDescription) = "en")    
 
         ?noticeFormTypeUri skos:prefLabel ?noticeFormType .
         FILTER(lang(?noticeFormType) = "en")
+
+        OPTIONAL {{
+        	?noticeUri epo:announcesLot ?announcesLotUri .
+          	?announcesLotUri ns3:identifier ?announcesLotIdUri .
+          	?announcesLotIdUri skos:notation ?announcesLotId .
+        }}
+      
+      	OPTIONAL {{
+            ?noticeUri epo:refersToLot ?refersLotUri .
+          	?refersLotUri ns3:identifier ?refersLotIdUri .
+          	?refersLotIdUri skos:notation ?refersLotId .
+        }}
     }}
 
+    GROUP BY 
+		?procedureId
+        ?noticeUri
+        ?ojsIssueNumber
+        ?noticePublicationNumber
+        ?noticeType
+        ?noticeTypeDescription
+        ?noticeFormType
+        ?noticePublicationDate
+        ?noticeESenderDispatchDate
+
     ORDER BY ?procedureId ?noticePublicationDate
+    """
+    return _get_query_result(query)
+
+
+def _get_lots(procedure_ids:list):
+    '''Returns dataframe with all lots linked to procedure in `procedure_ids`.'''
+
+    formatted_ids = ", ".join([f'"{id}"' for id in procedure_ids])
+
+    query = f"""
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX ns3: <http://www.w3.org/ns/adms#>
+    PREFIX dcterms: <http://purl.org/dc/terms/>
+
+    SELECT 
+    ?procedureId
+    ?lotId
+    ?internalId
+    (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?lotTitle), '":"', ?lotTitle, '"') ; separator=",") AS ?lotTitles)
+    (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?lotDescription), '":"', ?lotDescription, '"') ; separator=",") AS ?lotDescriptions)
+    ?mainPurpose
+
+    WHERE {{
+    ?procedureUri a epo:Procedure ;
+                    ns3:identifier ?procedureIdentifier .
+                        
+    ?procedureIdentifier skos:notation ?procedureId .
+    FILTER(?procedureId in ( {formatted_ids}) )
+    
+    OPTIONAl {{
+        ?procedureUri epo:hasProcurementScopeDividedIntoLot ?lotUri .
+        
+        ?lotUri a epo:Lot;
+            ns3:identifier ?lotIdUri ;
+            epo:hasInternalIdentifier ?internalIdUri ;
+            epo:hasPurpose ?lotPurposeUri ;
+            dcterms:title ?lotTitle ;
+            dcterms:description ?lotDescription .        
+        
+        ?lotIdUri skos:notation ?lotId .
+        
+        ?internalIdUri skos:notation ?internalId.
+        
+        ?lotPurposeUri epo:hasMainClassification ?purposeClassification .
+        ?purposeClassification skos:prefLabel ?mainPurpose .
+        FILTER(lang(?mainPurpose) = "en")
+    }}
+
+
+    }}
+
+    GROUP BY ?procedureId ?lotId ?internalId ?mainPurpose
+    ORDER BY ?procedureId
     """
 
     return _get_query_result(query)

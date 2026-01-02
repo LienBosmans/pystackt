@@ -23,10 +23,10 @@ def _new_procedure_attributes(object:Object,data:dict,object_attributes:dict,obj
     '''Sets the attributes for a new object of type `procedure` and adds them to the object_attribute_values dictionary.'''
 
                  # first string is key to get attribute, second string is key to use to extract from issue_data
-    attributes = [['procedure:id','procedureId'],    
-                  ['procedure:internal_id','procedureInternalId'],
-                  ['procedure:title','procedureTitle'],
-                  ['procedure:description','procedureDescription'],
+    attributes = [['procedure:procedure_id','procedureId'],    
+                  ['procedure:internal_procedure_id','procedureInternalId'],
+                  ['procedure:title','procedureTitles'],
+                  ['procedure:description','procedureDescriptions'],
                   ['procedure:procedure_type','procedureType'],
                   ['procedure:main_purpose','mainPurpose'],
                   ['procedure:legal_basis','legalBasis'],
@@ -70,12 +70,53 @@ def _new_notice_attributes(object:Object,data:dict,object_attributes:dict,object
                   ['notice:publication_number','noticePublicationNumber'],
                   ['notice:form_type','noticeFormType'],
                   ['notice:notice_type','noticeType'],
+                  ['notice:notice_type_description','noticeTypeDescription'],
                 #   ['notice:',''],
                 #   ['notice:',''],
                 #   ['notice:',''],
                  ]
 
     timestamp = data.get('noticeESenderDispatchDate')
+
+    for attribute_def in attributes:
+        object_attribute = object_attributes.get(attribute_def[0])  # get object_attribute with attribute_name
+        attribute_value = data.get(attribute_def[1])          # extract attribute_value from issue_data with defined key
+
+        new_object_attribute_value = ObjectAttributeValue(object,object_attribute,timestamp,attribute_value)
+
+        object_attribute_values[new_object_attribute_value.id] = new_object_attribute_value
+
+    return None
+
+
+def _new_object_lot(data:dict,
+        object_types:dict,objects:dict,object_attributes:dict,object_attribute_values:dict) -> Object:
+    '''Returns a new object of type `lot` and adds it to the objects dictionary.
+    Next, function `_new_lot_attributes` is called to create and store its attributes.'''
+
+    description = data.get("lotTitles")
+    object_type = object_types.get("lot")
+
+    new_object = Object(object_type,description)
+    objects[new_object.id] = new_object
+
+    _new_lot_attributes(new_object,data,object_attributes,object_attribute_values)
+
+    return new_object
+
+
+def _new_lot_attributes(object:Object,data:dict,object_attributes:dict,object_attribute_values:dict) -> None:
+    '''Sets the attributes for a new object of type `notice` and adds them to the object_attribute_values dictionary.'''
+
+                 # first string is key to get attribute, second string is key to use to extract from issue_data
+    attributes = [['lot:lot_id','lotId'],
+                  ['lot:internal_lot_id','internalId'],
+                  ['lot:title','lotTitles'],
+                  ['lot:description','lotDescriptions'],
+                  ['lot:main_purpose','mainPurpose'],
+                 ]
+
+    timestamp = data.get('timestamp')
 
     for attribute_def in attributes:
         object_attribute = object_attributes.get(attribute_def[0])  # get object_attribute with attribute_name
@@ -107,7 +148,7 @@ def _new_event_notice(data:dict,
 
     description = f"Publish notice {data.get('noticePublicationNumber')}"
     timestamp = data.get('noticePublicationDate')
-    event_type = _get_or_create_event_type(data.get('noticeType'),event_types)
+    event_type = _get_or_create_event_type(f"publish_{data.get('noticeType')}",event_types)
 
     new_event = Event(event_type,timestamp,description)
     events[new_event.id] = new_event
