@@ -61,7 +61,8 @@ def _initiate_relation_qualifiers() -> dict:
                     ['published','varchar'],
                     ['refers_to','varchar'],
                     ['divided_into','varchar'],
-                    ['announces','varchar']
+                    ['announces','varchar'],
+                    ['deadline','varchar']
                    ]
     
     relation_qualifiers = {}

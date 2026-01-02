@@ -27,7 +27,8 @@ from pystackt.extractors.ted.map_data import (      # maps dataframes extracted 
     _new_object_notice,
     _new_object_lot,
     _new_event_eform,
-    _new_event_notice
+    _new_event_notice,
+    _new_event_lot_deadline
 )
 
 from pystackt.utils.map_data import ( # maps the data extracted via API to custom class objects
@@ -69,6 +70,7 @@ def get_ted_log(org_legal_names:list,
     object_attribute_values = {}
 
     existing_xs = {} # aditional dictionary used to check if a x already exists as an object (will probably need this for organizations, notices, etc.)
+    existing_procedures = {}
 
     event_types = {}
     events = {}
@@ -95,10 +97,21 @@ def get_ted_log(org_legal_names:list,
     seconds_done = 0
     start_time = time.time()
 
+    # first create all procedures, so that relations to other procedures can be created if needed
     for row in procedure_dicts:
         # create procedure object with attributes
         procedure_object = _new_object_procedure(row,object_types,objects,object_attributes,object_attribute_values)
         procedureId = row.get("procedureId")
+
+        # add it to dictionary to fetch later
+        existing_procedures[procedureId] = procedure_object
+
+    # next, go over all procedures and get other data to create objects, events and relations
+    for row in procedure_dicts:
+        # fetch procedure object
+        procedureId = row.get("procedureId")
+        procedure_object = existing_procedures.get(procedureId)
+
         procedureInternalId = row.get("procedureInternalId")
         procedureFirstTimestamp = row.get("earliestNoticeTimestamp")
 
@@ -124,6 +137,18 @@ def get_ted_log(org_legal_names:list,
                 object_to_object=object_to_object
             )
 
+            lot_deadline_event = _new_event_lot_deadline(row,event_types,events,event_attributes,event_attribute_values)
+
+            _link_event_to_object(
+                event=lot_deadline_event,
+                object=lot_object,
+                qualifier_name='deadline',
+                description='participation deadline for lot',
+                relation_qualifiers=relation_qualifiers,
+                event_to_object=event_to_object
+            )
+
+
         # get all notices linked to procedure
         df_notices = _get_notices([procedureId])
         notice_dicts = df_notices.to_dicts()
@@ -133,8 +158,10 @@ def get_ted_log(org_legal_names:list,
             publish_timestamp = row.get("noticePublicationDate")
 
             notice_object = _new_object_notice(row,object_types,objects,object_attributes,object_attribute_values)
-
             transmit_eform_event = _new_event_eform(row,event_types,events,event_attributes,event_attribute_values)
+            notice_event = _new_event_notice(row,event_types,events,event_attributes,event_attribute_values)
+
+            # create event-to-object relation from transmit e-form event to notice object
             _link_event_to_object(
                 event=transmit_eform_event,
                 object=notice_object,
@@ -144,7 +171,7 @@ def get_ted_log(org_legal_names:list,
                 event_to_object=event_to_object
             )
 
-            notice_event = _new_event_notice(row,event_types,events,event_attributes,event_attribute_values)
+            # create event-to-object relation from publish notice event to notice object
             _link_event_to_object(
                 event=notice_event,
                 object=notice_object,
@@ -153,19 +180,6 @@ def get_ted_log(org_legal_names:list,
                 relation_qualifiers=relation_qualifiers,
                 event_to_object=event_to_object
             )
-
-            _link_object_to_object(
-                from_object=notice_object,
-                to_object=procedure_object,
-                timestamp=transmit_eform_event.timestamp,
-                qualifier_name='refers_to',
-                description='notice refers to procedure',
-                relation_qualifiers=relation_qualifiers,
-                object_to_object=object_to_object
-            )
-
-            # print(row.get("announcesLotIds"))
-            # print(row.get("refersLotIds"))
 
             # create event-to-object relations from publish notice event to lot object
             for lot in row.get("announcesLotIds").split(','):
@@ -190,6 +204,33 @@ def get_ted_log(org_legal_names:list,
                         timestamp=transmit_eform_event.timestamp,
                         qualifier_name='refers_to',
                         description='notice refers to lot',
+                        relation_qualifiers=relation_qualifiers,
+                        object_to_object=object_to_object
+                    )
+
+            # create event-to-object relations from publish notice event to procedure object
+            for proc in row.get("announcesProcedureIds").split(','):
+                proc_object = existing_procedures.get(proc.strip('"'))
+                if proc_object:
+                    _link_event_to_object(
+                        event=notice_event,
+                        object=proc_object,
+                        qualifier_name='announces',
+                        description='notice announces procedure',
+                        relation_qualifiers=relation_qualifiers,
+                        event_to_object=event_to_object
+                    )
+            
+            # create object-to-object relations from notice object to procedure object
+            for proc in row.get("refersProcedureIds").split(','):
+                proc_object = existing_procedures.get(proc.strip('"'))
+                if proc_object:
+                    _link_object_to_object(
+                        from_object=notice_object,
+                        to_object=proc_object,
+                        timestamp=transmit_eform_event.timestamp,
+                        qualifier_name='refers_to',
+                        description='notice refers to procedure',
                         relation_qualifiers=relation_qualifiers,
                         object_to_object=object_to_object
                     )
@@ -234,5 +275,5 @@ def get_ted_log(org_legal_names:list,
 
 
 # legal_names = ['"Imec EU Pilot line NV"@en', '"IMEC VZW"@en']
-legal_names = ['"Intercommunale Ontwikkelingsorganisatie voor de Kempen"@nl']
-get_ted_log(org_legal_names=legal_names)
+# legal_names = ['"Intercommunale Ontwikkelingsorganisatie voor de Kempen"@nl']
+# get_ted_log(org_legal_names=legal_names)

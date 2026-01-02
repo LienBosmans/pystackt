@@ -1,4 +1,6 @@
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import polars as pl
 
 def _get_query_result(query:str):
@@ -12,7 +14,23 @@ def _get_query_result(query:str):
         "timeout": 30000
     }
 
-    response = requests.get(base_url, params)
+    retry_strategy = Retry(
+        total=5,                                    # Total number of retries
+        status_forcelist=[429, 500, 502, 503, 504], # Only retry on 503 (add 502, 504 if needed)
+        backoff_factor=1,                           # Wait 1s, 2s, 4s, 8s... between retries
+        allowed_methods=["GET", "POST"]             # Methods to retry on
+    )
+
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session = requests.Session()
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+    try:
+        response = session.get(base_url, params=params)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print(f"Failed after retries: {e}")
 
     if response.status_code == 200:
         raw_data = response.json().get("results").get("bindings")
@@ -133,6 +151,8 @@ def _get_notices(procedure_ids:list):
         ?noticeESenderDispatchDate
         (GROUP_CONCAT(DISTINCT CONCAT('"', ?announcesLotId, '"') ; separator=",") AS ?announcesLotIds)
     	(GROUP_CONCAT(DISTINCT CONCAT('"', ?refersLotId, '"') ; separator=",") AS ?refersLotIds)
+        (GROUP_CONCAT(DISTINCT CONCAT('"', ?announcesProcedureId, '"') ; separator=",") AS ?announcesProcedureIds)
+    	(GROUP_CONCAT(DISTINCT CONCAT('"', ?refersProcedureId, '"') ; separator=",") AS ?refersProcedureIds)
 
     WHERE {{
         ?procedureUri a epo:Procedure ;
@@ -158,17 +178,11 @@ def _get_notices(procedure_ids:list):
         ?noticeFormTypeUri skos:prefLabel ?noticeFormType .
         FILTER(lang(?noticeFormType) = "en")
 
-        OPTIONAL {{
-        	?noticeUri epo:announcesLot ?announcesLotUri .
-          	?announcesLotUri ns3:identifier ?announcesLotIdUri .
-          	?announcesLotIdUri skos:notation ?announcesLotId .
-        }}
-      
-      	OPTIONAL {{
-            ?noticeUri epo:refersToLot ?refersLotUri .
-          	?refersLotUri ns3:identifier ?refersLotIdUri .
-          	?refersLotIdUri skos:notation ?refersLotId .
-        }}
+        OPTIONAL {{ ?noticeUri epo:announcesLot/ns3:identifier/skos:notation ?announcesLotId .  }}
+      	OPTIONAL {{ ?noticeUri epo:refersToLot/ns3:identifier/skos:notation ?refersLotId . }}
+          
+        OPTIONAL {{ ?noticeUri epo:announcesProcedure/ns3:identifier/skos:notation ?announcesProcedureId .  }}
+      	OPTIONAL {{ ?noticeUri epo:refersToProcedure/ns3:identifier/skos:notation ?refersProcedureId . }}
     }}
 
     GROUP BY 
@@ -199,38 +213,39 @@ def _get_lots(procedure_ids:list):
     PREFIX dcterms: <http://purl.org/dc/terms/>
 
     SELECT 
-    ?procedureId
-    ?lotId
-    ?internalId
-    (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?lotTitle), '":"', ?lotTitle, '"') ; separator=",") AS ?lotTitles)
-    (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?lotDescription), '":"', ?lotDescription, '"') ; separator=",") AS ?lotDescriptions)
-    ?mainPurpose
+      ?procedureId
+      ?lotId
+      ?internalId
+      (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?lotTitle), '":"', ?lotTitle, '"') ; separator=",") AS ?lotTitles)
+      (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?lotDescription), '":"', ?lotDescription, '"') ; separator=",") AS ?lotDescriptions)
+      ?mainPurpose
+      (MAX(?participationDeadline) AS ?participationDeadline)
 
     WHERE {{
-    ?procedureUri a epo:Procedure ;
-                    ns3:identifier ?procedureIdentifier .
-                        
-    ?procedureIdentifier skos:notation ?procedureId .
-    FILTER(?procedureId in ( {formatted_ids}) )
-    
-    OPTIONAl {{
-        ?procedureUri epo:hasProcurementScopeDividedIntoLot ?lotUri .
-        
-        ?lotUri a epo:Lot;
-            ns3:identifier ?lotIdUri ;
-            epo:hasInternalIdentifier ?internalIdUri ;
-            epo:hasPurpose ?lotPurposeUri ;
-            dcterms:title ?lotTitle ;
-            dcterms:description ?lotDescription .        
-        
-        ?lotIdUri skos:notation ?lotId .
-        
-        ?internalIdUri skos:notation ?internalId.
-        
-        ?lotPurposeUri epo:hasMainClassification ?purposeClassification .
-        ?purposeClassification skos:prefLabel ?mainPurpose .
-        FILTER(lang(?mainPurpose) = "en")
-    }}
+      ?procedureUri a epo:Procedure ;
+                      ns3:identifier ?procedureIdentifier .
+
+      ?procedureIdentifier skos:notation ?procedureId .
+      FILTER(?procedureId in ( {formatted_ids} ) )
+
+      OPTIONAl {{
+          ?procedureUri epo:hasProcurementScopeDividedIntoLot ?lotUri .
+
+          ?lotUri a epo:Lot;
+              ns3:identifier/skos:notation ?lotId ;
+              epo:hasInternalIdentifier/skos:notation ?internalId ;
+              epo:hasPurpose/epo:hasMainClassification/skos:prefLabel ?mainPurpose ;
+              dcterms:title ?lotTitle ;
+              dcterms:description ?lotDescription .
+          FILTER(lang(?mainPurpose) = "en")
+
+        OPTIONAL {{ 
+          ?lotUri epo:isSubjectToLotSpecificTerm ?lotTermUri .
+          ?lotTermUri a epo:SubmissionTerm .
+          ?lotTermUri epo:hasReceiptParticipationRequestDeadline | epo:hasReceiptTenderDeadline ?participationDeadline . 
+        }}
+
+      }}
 
 
     }}

@@ -154,3 +154,17 @@ def _new_event_notice(data:dict,
     events[new_event.id] = new_event
 
     return new_event
+
+
+def _new_event_lot_deadline(data:dict,
+                     event_types:dict,events:dict,event_attributes:dict,event_attribute_values:dict) -> Event:
+    '''Returns a new event of type `participation_deadline` and adds it to the events dictionary.'''
+
+    description = f"Participation deadline for lot {data.get('lotId')}"
+    timestamp = data.get('participationDeadline')
+    event_type = _get_or_create_event_type("participation_deadline",event_types)
+
+    new_event = Event(event_type,timestamp,description)
+    events[new_event.id] = new_event
+
+    return new_event
