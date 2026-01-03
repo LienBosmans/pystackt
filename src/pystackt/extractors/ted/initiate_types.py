@@ -1,11 +1,12 @@
 from pystackt.utils.class_definitions import *
 
 def _initiate_object_types() -> dict:
-    """Initiates the object types `procedure`, `notice`, `lot`."""
+    """Initiates the object types `procedure`, `notice`, `lot`, `organization`."""
 
     descriptions = ['procedure',
                     'notice',
-                    'lot'
+                    'lot',
+                    'organization'
                    ]
     
     object_types = {}
@@ -43,6 +44,9 @@ def _initiate_object_attributes(object_types:dict) -> dict:
                             ['description','varchar'],
                             ['main_purpose','varchar'],
                            ],
+                     'organization':[['legal_name','varchar'],
+                                     ['legal_identifier','varchar'],
+                                    ],
                     }
     object_attributes = {}
     for object_type_description,object_attribute_descriptions in descriptions.items():
@@ -62,7 +66,11 @@ def _initiate_relation_qualifiers() -> dict:
                     ['refers_to','varchar'],
                     ['divided_into','varchar'],
                     ['announces','varchar'],
-                    ['deadline','varchar']
+                    ['deadline','varchar'],
+                    ['announces_role','varchar'],
+                    ['acts_on_behalf_of','varchar'],
+                    ['role_context','varchar'],
+                    ['refers_to_role','varchar']
                    ]
     
     relation_qualifiers = {}

@@ -106,7 +106,7 @@ def _new_object_lot(data:dict,
 
 
 def _new_lot_attributes(object:Object,data:dict,object_attributes:dict,object_attribute_values:dict) -> None:
-    '''Sets the attributes for a new object of type `notice` and adds them to the object_attribute_values dictionary.'''
+    '''Sets the attributes for a new object of type `lot` and adds them to the object_attribute_values dictionary.'''
 
                  # first string is key to get attribute, second string is key to use to extract from issue_data
     attributes = [['lot:lot_id','lotId'],
@@ -117,6 +117,43 @@ def _new_lot_attributes(object:Object,data:dict,object_attributes:dict,object_at
                  ]
 
     timestamp = data.get('timestamp')
+
+    for attribute_def in attributes:
+        object_attribute = object_attributes.get(attribute_def[0])  # get object_attribute with attribute_name
+        attribute_value = data.get(attribute_def[1])          # extract attribute_value from issue_data with defined key
+
+        new_object_attribute_value = ObjectAttributeValue(object,object_attribute,timestamp,attribute_value)
+
+        object_attribute_values[new_object_attribute_value.id] = new_object_attribute_value
+
+    return None
+
+
+def _new_object_organization(data:dict,
+        object_types:dict,objects:dict,object_attributes:dict,object_attribute_values:dict) -> Object:
+    '''Returns a new object of type `organization` and adds it to the objects dictionary.
+    Next, function `_new_organization_attributes` is called to create and store its attributes.'''
+
+    description = data.get("legalName")
+    object_type = object_types.get("organization")
+
+    new_object = Object(object_type,description)
+    objects[new_object.id] = new_object
+
+    _new_organization_attributes(new_object,data,object_attributes,object_attribute_values)
+
+    return new_object
+
+
+def _new_organization_attributes(object:Object,data:dict,object_attributes:dict,object_attribute_values:dict) -> None:
+    '''Sets the attributes for a new object of type `organization` and adds them to the object_attribute_values dictionary.'''
+
+                 # first string is key to get attribute, second string is key to use to extract from issue_data
+    attributes = [['organization:legal_name','legalName'],
+                  ['organization:legal_identifier','legalIdentifier'],
+                 ]
+
+    timestamp = data.get('noticeESenderDispatchDate')
 
     for attribute_def in attributes:
         object_attribute = object_attributes.get(attribute_def[0])  # get object_attribute with attribute_name

@@ -18,7 +18,8 @@ from pystackt.extractors.ted.get_data import (      # uses SPARQL queries send t
 # from get_data import (
     _get_procedures,
     _get_notices,
-    _get_lots
+    _get_lots,
+    _get_organizations
 ) 
 
 from pystackt.extractors.ted.map_data import (      # maps dataframes extracted via API to custom class objects
@@ -26,6 +27,7 @@ from pystackt.extractors.ted.map_data import (      # maps dataframes extracted 
     _new_object_procedure,
     _new_object_notice,
     _new_object_lot,
+    _new_object_organization,
     _new_event_eform,
     _new_event_notice,
     _new_event_lot_deadline
@@ -69,7 +71,8 @@ def get_ted_log(org_legal_names:list,
     objects = {}
     object_attribute_values = {}
 
-    existing_xs = {} # aditional dictionary used to check if a x already exists as an object (will probably need this for organizations, notices, etc.)
+    all_organizations = {}
+    all_notices = {}
     existing_procedures = {}
 
     event_types = {}
@@ -120,6 +123,7 @@ def get_ted_log(org_legal_names:list,
         lot_dicts = df_lots.to_dicts()
 
         procedure_lot_objects = {}
+        procedure_org_objects = {}
 
         for row in lot_dicts:
             row["timestamp"] = procedureFirstTimestamp
@@ -154,12 +158,12 @@ def get_ted_log(org_legal_names:list,
         notice_dicts = df_notices.to_dicts()
 
         for row in notice_dicts:
-            dispatch_timestamp = row.get("noticeESenderDispatchDate")
-            publish_timestamp = row.get("noticePublicationDate")
-
             notice_object = _new_object_notice(row,object_types,objects,object_attributes,object_attribute_values)
+            all_notices[f"object:{row.get("noticeUri")}"] = notice_object # for creating object-to-object relations
+
             transmit_eform_event = _new_event_eform(row,event_types,events,event_attributes,event_attribute_values)
             notice_event = _new_event_notice(row,event_types,events,event_attributes,event_attribute_values)
+            all_notices[f"event:{row.get("noticeUri")}"] = notice_event # for creating event-to-object relations
 
             # create event-to-object relation from transmit e-form event to notice object
             _link_event_to_object(
@@ -231,6 +235,79 @@ def get_ted_log(org_legal_names:list,
                         timestamp=transmit_eform_event.timestamp,
                         qualifier_name='refers_to',
                         description='notice refers to procedure',
+                        relation_qualifiers=relation_qualifiers,
+                        object_to_object=object_to_object
+                    )
+
+        # get all organizations linked to notices and their role & relations
+        notice_uris = df_notices["noticeUri"].to_list()
+        df_organizations = _get_organizations(notice_uris)
+        organization_dicts = df_organizations.to_dicts()
+
+        for row in organization_dicts:
+            legal_id = row.get("legalIdentifier")
+            timestamp = row.get("noticeESenderDispatchDate")
+            role = row.get("role")
+            org_id = row.get("orgId")
+            on_behalf_of_org_id = row.get("actsOnBehalfOfOrgId")
+            
+            # get organization object, create it if it doesn't exist yet
+            organization_object = all_organizations.get(legal_id)
+            if not organization_object:
+                organization_object = _new_object_organization(row,object_types,objects,object_attributes,object_attribute_values)
+                all_organizations[legal_id] = organization_object
+            
+            procedure_org_objects[org_id] = organization_object # for creating object-to-object relations
+
+            # create object-to-object relation from notice object to organization object
+            notice_object = all_notices.get(f"object:{row.get("noticeUri")}")
+            if notice_object:
+                _link_object_to_object(
+                    from_object=notice_object,
+                    to_object=organization_object,
+                    timestamp=timestamp,
+                    qualifier_name='refers_to_role',
+                    description=f'notice refers to {role}',
+                    relation_qualifiers=relation_qualifiers,
+                    object_to_object=object_to_object
+                )
+
+            # create event-to-object relations from publish notice event to organization object
+            notice_event = all_notices.get(f"event:{row.get("noticeUri")}")
+            if row.get("isAnnounced"):
+                _link_event_to_object(
+                    event=notice_event,
+                    object=organization_object,
+                    qualifier_name=f'announces_role',
+                    description=f'notice announces {role}',
+                    relation_qualifiers=relation_qualifiers,
+                    event_to_object=event_to_object
+                )
+            
+            # create object-to-object relation from organization object to organization object
+            if on_behalf_of_org_id:
+                on_behalf_of_org_object = procedure_org_objects.get(on_behalf_of_org_id)
+                if on_behalf_of_org_object:
+                    _link_object_to_object(
+                        from_object=organization_object,
+                        to_object=on_behalf_of_org_object,
+                        timestamp=timestamp,
+                        qualifier_name='acts_on_behalf_of',
+                        description=f'acts as {role} on behalf of for procedure {procedureInternalId}',
+                        relation_qualifiers=relation_qualifiers,
+                        object_to_object=object_to_object
+                    )
+
+            # create object-to-object relations from organization object to lot object
+            for lot in row.get("lotIds").split(','):
+                lot_object = procedure_lot_objects.get(lot.strip('"'))
+                if lot_object:
+                    _link_object_to_object(
+                        from_object=organization_object,
+                        to_object=lot_object,
+                        timestamp=timestamp,
+                        qualifier_name='role_context',
+                        description=f'acts as {role} for',
                         relation_qualifiers=relation_qualifiers,
                         object_to_object=object_to_object
                     )

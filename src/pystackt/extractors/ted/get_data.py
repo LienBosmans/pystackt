@@ -255,3 +255,81 @@ def _get_lots(procedure_ids:list):
     """
 
     return _get_query_result(query)
+
+def _get_organizations(notice_uris:list):
+    '''Returns dataframe with all organization linked to notice in `notice_ids`.'''
+
+    formatted_uris = ", ".join([f'<{uri}>' for uri in notice_uris])
+
+    query = f"""
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX ns3: <http://www.w3.org/ns/adms#>
+    PREFIX dc: <http://purl.org/dc/elements/1.1/>
+	PREFIX dcterms: <http://purl.org/dc/terms/>
+	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns>
+
+    SELECT 
+        ?noticeUri
+		?noticeESenderDispatchDate
+		?noticePublicationDate
+		?isAnnounced
+		?orgId
+		?role
+		?legalName
+		?legalIdentifier
+		?actsOnBehalfOfOrgId
+		(GROUP_CONCAT(DISTINCT CONCAT('"', ?lotId, '"') ; separator=",") AS ?lotIds)
+    WHERE {{      
+        ?noticeUri a epo:Notice ;
+        	epo:hasPublicationDate ?noticePublicationDate ;
+            epo:hasESenderDispatchDate ?noticeESenderDispatchDate .
+        FILTER(?noticeUri IN ({formatted_uris}) )
+      
+      	OPTIONAL {{ 
+          {{ 
+            ?noticeUri epo:announcesRole ?roleUri . 
+            BIND(true AS ?isAnnounced) 
+          }}
+          UNION
+          {{
+            ?noticeUri epo:refersToRole ?roleUri . 
+            BIND(false AS ?isAnnounced) 
+          }}
+          
+          ?roleUri rdf:type/skos:prefLabel ?role .
+          FILTER(lang(?role) = "en")
+          
+          OPTIONAL {{ 
+          	?roleUri epo:playedBy ?orgUri .
+            ?orgUri
+            	epo:hasLegalName ?legalName ;
+                epo:hasLegalIdentifier/skos:notation ?legalIdentifier ;
+            	ns3:identifier/skos:notation ?orgId .
+            
+           	OPTIONAL {{
+              	?roleUri epo:actsOnBehalfOf/epo:playedBy/ns3:identifier/skos:notation ?actsOnBehalfOfOrgId .
+            }}
+            
+            OPTIONAL {{
+              	?roleUri epo:contextualisedBy/ns3:identifier/skos:notation ?lotId .
+            }}
+          }}
+        
+        }}
+
+    }}
+
+	GROUP BY
+        ?noticeUri
+		?noticeESenderDispatchDate
+		?noticePublicationDate
+		?isAnnounced
+		?orgId
+		?role
+		?legalName
+		?legalIdentifier
+		?actsOnBehalfOfOrgId
+    """
+
+    return _get_query_result(query)
