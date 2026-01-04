@@ -11,7 +11,7 @@ def _extract_dataframe(table:dict) -> pl.DataFrame:
     for key,record in table.items():
         lst_records.append(record.get_dict())
 
-    df_records = pl.DataFrame(lst_records)
+    df_records = pl.DataFrame(lst_records, infer_schema_length=None)
 
     return df_records
 
