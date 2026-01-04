@@ -93,7 +93,7 @@ def get_ted_log(org_legal_names:list,
     procedure_dicts = df_procedures.to_dicts()
     num_procedures = df_procedures.height
 
-    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for approximately {num_procedures} procedures ...")
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_procedures} procedures ...")
 
     print_counter = 0
     perc_done = 0
@@ -244,20 +244,30 @@ def get_ted_log(org_legal_names:list,
         df_organizations = _get_organizations(notice_uris)
         organization_dicts = df_organizations.to_dicts()
 
+        # first, create all organization objects so they can be used for relations later
         for row in organization_dicts:
             legal_id = row.get("legalIdentifier")
+            legal_name = row.get("legalName")
+            org_id = row.get("orgId")
+            
+            # get organization object, create it if it doesn't exist yet
+            organization_object = all_organizations.get((legal_id,legal_name))
+            if not organization_object:
+                organization_object = _new_object_organization(row,object_types,objects,object_attributes,object_attribute_values)
+                all_organizations[(legal_id,legal_name)] = organization_object
+            
+            procedure_org_objects[org_id] = organization_object # for creating object-to-object relations
+
+        # next, create relations
+        for row in organization_dicts:
+            legal_id = row.get("legalIdentifier")
+            legal_name = row.get("legalName")
             timestamp = row.get("noticeESenderDispatchDate")
             role = row.get("role")
             org_id = row.get("orgId")
             on_behalf_of_org_id = row.get("actsOnBehalfOfOrgId")
-            
-            # get organization object, create it if it doesn't exist yet
-            organization_object = all_organizations.get(legal_id)
-            if not organization_object:
-                organization_object = _new_object_organization(row,object_types,objects,object_attributes,object_attribute_values)
-                all_organizations[legal_id] = organization_object
-            
-            procedure_org_objects[org_id] = organization_object # for creating object-to-object relations
+
+            organization_object = all_organizations.get((legal_id,legal_name))
 
             # create object-to-object relation from notice object to organization object
             notice_object = all_notices.get(f"object:{row.get("noticeUri")}")

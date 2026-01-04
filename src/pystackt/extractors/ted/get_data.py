@@ -276,8 +276,8 @@ def _get_organizations(notice_uris:list):
 		?isAnnounced
 		?orgId
 		?role
-		?legalName
-		?legalIdentifier
+		(UCASE(REPLACE(STR(?rawLegalName), "^\\\\s+|\\\\s+$", "")) AS ?legalName)
+		(UCASE(REPLACE(STR(?rawLegalIdentifier), "^\\\\s+|\\\\s+$", "")) AS ?legalIdentifier)
 		?actsOnBehalfOfOrgId
 		(GROUP_CONCAT(DISTINCT CONCAT('"', ?lotId, '"') ; separator=",") AS ?lotIds)
     WHERE {{      
@@ -303,8 +303,8 @@ def _get_organizations(notice_uris:list):
           OPTIONAL {{ 
           	?roleUri epo:playedBy ?orgUri .
             ?orgUri
-            	epo:hasLegalName ?legalName ;
-                epo:hasLegalIdentifier/skos:notation ?legalIdentifier ;
+            	epo:hasLegalName ?rawLegalName ;
+                epo:hasLegalIdentifier/skos:notation ?rawLegalIdentifier ;
             	ns3:identifier/skos:notation ?orgId .
             
            	OPTIONAL {{
@@ -327,8 +327,8 @@ def _get_organizations(notice_uris:list):
 		?isAnnounced
 		?orgId
 		?role
-		?legalName
-		?legalIdentifier
+		?rawLegalName
+		?rawLegalIdentifier
 		?actsOnBehalfOfOrgId
     """
 
