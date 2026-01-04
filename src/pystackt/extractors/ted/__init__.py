@@ -16,6 +16,8 @@ from pystackt.extractors.ted.initiate_types import (    # contains pre-defined e
 
 from pystackt.extractors.ted.get_data import (      # uses SPARQL queries send to the web api of ted portal to get the data
 # from get_data import (
+    _get_procedure_ids,
+    _get_procedures_new,
     _get_procedures,
     _get_notices,
     _get_lots,
@@ -27,6 +29,7 @@ from pystackt.extractors.ted.map_data import (      # maps dataframes extracted 
     _new_object_procedure,
     _new_object_notice,
     _new_object_lot,
+    _new_object_role,
     _new_object_organization,
     _new_event_eform,
     _new_event_notice,
@@ -88,18 +91,23 @@ def get_ted_log(org_legal_names:list,
     ## Data extraction & mapping
     print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction from TED")
 
-    # get procedure objects
-    df_procedures = _get_procedures(legal_names=org_legal_names)
-    procedure_dicts = df_procedures.to_dicts()
-    num_procedures = df_procedures.height
+    # get procedure ids
+    df_procedure_ids = _get_procedure_ids(legal_names=org_legal_names)
+    num_procedures = df_procedure_ids.height
 
     print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_procedures} procedures ...")
+
+    # get procedure objects
+    df_procedures = _get_procedures_new(procedure_ids=df_procedure_ids["procedureId"].to_list())
+    ## df_procedures = _get_procedures(legal_names=org_legal_names) ## old code, to delete if new works
+    procedure_dicts = df_procedures.to_dicts()
 
     print_counter = 0
     perc_done = 0
     seconds_done = 0
     start_time = time.time()
 
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting creation of {num_procedures} procedure objects ...")
     # first create all procedures, so that relations to other procedures can be created if needed
     for row in procedure_dicts:
         # create procedure object with attributes
@@ -110,6 +118,7 @@ def get_ted_log(org_legal_names:list,
         existing_procedures[procedureId] = procedure_object
 
     # next, go over all procedures and get other data to create objects, events and relations
+    print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for information related to {num_procedures} procedures ...")
     for row in procedure_dicts:
         # fetch procedure object
         procedureId = row.get("procedureId")
@@ -123,7 +132,7 @@ def get_ted_log(org_legal_names:list,
         lot_dicts = df_lots.to_dicts()
 
         procedure_lot_objects = {}
-        procedure_org_objects = {}
+        procedure_role_objects = {}
 
         for row in lot_dicts:
             row["timestamp"] = procedureFirstTimestamp
@@ -192,7 +201,7 @@ def get_ted_log(org_legal_names:list,
                     _link_event_to_object(
                         event=notice_event,
                         object=lot_object,
-                        qualifier_name='announces',
+                        qualifier_name='announces_lot',
                         description='notice announces lot',
                         relation_qualifiers=relation_qualifiers,
                         event_to_object=event_to_object
@@ -219,7 +228,7 @@ def get_ted_log(org_legal_names:list,
                     _link_event_to_object(
                         event=notice_event,
                         object=proc_object,
-                        qualifier_name='announces',
+                        qualifier_name='announces_procedure',
                         description='notice announces procedure',
                         relation_qualifiers=relation_qualifiers,
                         event_to_object=event_to_object
@@ -249,16 +258,31 @@ def get_ted_log(org_legal_names:list,
             legal_id = row.get("legalIdentifier")
             legal_name = row.get("legalName")
             org_id = row.get("orgId")
+            role = row.get("role")
+            timestamp = row.get("noticeESenderDispatchDate")
             
             # get organization object, create it if it doesn't exist yet
             organization_object = all_organizations.get((legal_id,legal_name))
             if not organization_object:
                 organization_object = _new_object_organization(row,object_types,objects,object_attributes,object_attribute_values)
                 all_organizations[(legal_id,legal_name)] = organization_object
-            
-            procedure_org_objects[org_id] = organization_object # for creating object-to-object relations
 
-        # next, create relations
+            # create role object
+            role_object = _new_object_role(row,object_types,objects,object_attributes,object_attribute_values)
+            procedure_role_objects[org_id] = {'role':role_object, 'played_by_org':organization_object} # for creating object-to-object relations
+
+            # create object-to-object relation from role object to organization object
+            _link_object_to_object(
+                from_object=role_object,
+                to_object=organization_object,
+                timestamp=timestamp,
+                qualifier_name='played_by',
+                description=f'{legal_name} acts as {role}',
+                relation_qualifiers=relation_qualifiers,
+                object_to_object=object_to_object
+            )
+
+        # next, create more relations
         for row in organization_dicts:
             legal_id = row.get("legalIdentifier")
             legal_name = row.get("legalName")
@@ -267,14 +291,14 @@ def get_ted_log(org_legal_names:list,
             org_id = row.get("orgId")
             on_behalf_of_org_id = row.get("actsOnBehalfOfOrgId")
 
-            organization_object = all_organizations.get((legal_id,legal_name))
+            role_object = procedure_role_objects.get(org_id).get('role')
 
-            # create object-to-object relation from notice object to organization object
+            # create object-to-object relation from notice object to role object
             notice_object = all_notices.get(f"object:{row.get("noticeUri")}")
             if notice_object:
                 _link_object_to_object(
                     from_object=notice_object,
-                    to_object=organization_object,
+                    to_object=role_object,
                     timestamp=timestamp,
                     qualifier_name='refers_to_role',
                     description=f'notice refers to {role}',
@@ -282,38 +306,38 @@ def get_ted_log(org_legal_names:list,
                     object_to_object=object_to_object
                 )
 
-            # create event-to-object relations from publish notice event to organization object
+            # create event-to-object relations from publish notice event to role object
             notice_event = all_notices.get(f"event:{row.get("noticeUri")}")
             if row.get("isAnnounced"):
                 _link_event_to_object(
                     event=notice_event,
-                    object=organization_object,
+                    object=role_object,
                     qualifier_name=f'announces_role',
                     description=f'notice announces {role}',
                     relation_qualifiers=relation_qualifiers,
                     event_to_object=event_to_object
                 )
             
-            # create object-to-object relation from organization object to organization object
+            # create object-to-object relation from role object to organization object
             if on_behalf_of_org_id:
-                on_behalf_of_org_object = procedure_org_objects.get(on_behalf_of_org_id)
+                on_behalf_of_org_object = procedure_role_objects.get(on_behalf_of_org_id).get('played_by_org')
                 if on_behalf_of_org_object:
                     _link_object_to_object(
-                        from_object=organization_object,
+                        from_object=role_object,
                         to_object=on_behalf_of_org_object,
                         timestamp=timestamp,
                         qualifier_name='acts_on_behalf_of',
-                        description=f'acts as {role} on behalf of for procedure {procedureInternalId}',
+                        description=f'acts as {role} on behalf of',
                         relation_qualifiers=relation_qualifiers,
                         object_to_object=object_to_object
                     )
 
-            # create object-to-object relations from organization object to lot object
+            # create object-to-object relations from role object to lot object
             for lot in row.get("lotIds").split(','):
                 lot_object = procedure_lot_objects.get(lot.strip('"'))
                 if lot_object:
                     _link_object_to_object(
-                        from_object=organization_object,
+                        from_object=role_object,
                         to_object=lot_object,
                         timestamp=timestamp,
                         qualifier_name='role_context',
@@ -337,7 +361,8 @@ def get_ted_log(org_legal_names:list,
         )
         
         if bool_print: 
-            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data for procedure {procedureInternalId} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
+            print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Extracting and mapping data related to procedure {procedureInternalId} done ...{round(100*perc_done,1)}% (about {round(seconds_done/perc_done - seconds_done,1)}s remaining)")
+            # if print_counter > 1: break       # for testing purposes
 
     ## Store the result (includes print statements)
     _store_result(
@@ -363,4 +388,5 @@ def get_ted_log(org_legal_names:list,
 
 # legal_names = ['"Imec EU Pilot line NV"@en', '"IMEC VZW"@en']
 # legal_names = ['"Intercommunale Ontwikkelingsorganisatie voor de Kempen"@nl']
+# legal_names = ['"Raad van State"@nl']
 # get_ted_log(org_legal_names=legal_names)

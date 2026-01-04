@@ -45,6 +45,159 @@ def _get_query_result(query:str):
         return None
 
 
+def _get_procedure_ids(legal_names:list):
+    '''Returns dataframe with all procedure ids of procedures linked to organization
+    that appears in `legal_names`.'''
+
+    formatted_names = ", ".join([f'{name}' for name in legal_names])
+
+    query = f"""
+    PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
+    PREFIX org: <http://www.w3.org/ns/org#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX ns3: <http://www.w3.org/ns/adms#>
+
+    SELECT
+        ?procedureId
+    WHERE {{
+      	?orgUri a org:Organization ;
+        	epo:hasLegalName ?legalName .
+        FILTER (?legalName IN ( "Raad van State"@nl ) )
+      
+      	?roleUri epo:playedBy ?orgUri .
+      
+        ?noticeUri epo:announcesRole ?roleUri ;
+            epo:refersToProcedure ?procedureUri .
+                   
+        ?procedureUri ns3:identifier/skos:notation ?procedureId .
+ 	}}
+
+    GROUP BY 
+        ?procedureId
+    """
+
+    return _get_query_result(query)
+
+
+def chunk_list(data, size=50):
+    """Yield successive n-sized chunks from data."""
+    for i in range(0, len(data), size):
+        yield data[i:i + size]
+
+
+def _get_procedures_new(procedure_ids:list, chunk_size:int=100):
+    '''Returns dataframe with all procedures with id in `procedure_ids`.
+    Processing is done in chunks of `chunk_size`.'''
+
+    all_results = []
+    i = 0
+    for chunk in chunk_list(procedure_ids, chunk_size):
+        formatted_ids = ", ".join([f'"{id}"' for id in chunk])
+
+        query = f"""
+        PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        PREFIX ns3: <http://www.w3.org/ns/adms#>
+
+        SELECT 
+            (MIN(?eSenderDispatchDate) AS ?earliestNoticeTimestamp)
+            ?mainPurpose
+            ?legalBasis
+            ?isAccelerated
+            ?procedureId
+            ?procedureInternalId
+            (lang(?procedureTitle) AS ?langProcedureTitle)
+            ?procedureTitle
+            (lang(?procedureDescription) AS ?langProcedureDescription)
+            ?procedureDescription
+            ?procedureType
+
+        WHERE {{
+            ?procedureIdentifier skos:notation ?procedureId .
+            FILTER(?procedureId IN ( {formatted_ids} ))
+        
+            ?procedureUri ns3:identifier ?procedureIdentifier .
+
+            ?noticeUri epo:announcesProcedure ?procedureUri ;
+        	    epo:hasESenderDispatchDate ?eSenderDispatchDate .
+        
+            OPTIONAL {{ ?procedureUri dcterms:title ?procedureTitle . }}
+            OPTIONAL {{ ?procedureUri dcterms:description ?procedureDescription . }}
+            OPTIONAL {{ ?procedureUri epo:hasInternalIdentifier/skos:notation ?procedureInternalId . }}
+            OPTIONAL {{ ?procedureUri epo:isAccelerated ?isAccelerated . }}
+
+            OPTIONAL {{ 
+                ?procedureUri epo:hasPurpose/epo:hasMainClassification/skos:prefLabel ?mainPurpose .
+                FILTER(lang(?mainPurpose) = "en")
+            }}
+            
+            OPTIONAL {{
+                ?procedureUri epo:hasLegalBasis/skos:scopeNote ?legalBasis .
+                FILTER(lang(?legalBasis) = "en")
+            }}
+            
+            OPTIONAL {{
+                ?procedureUri epo:hasProcedureType/skos:prefLabel ?procedureType .
+                FILTER(lang(?procedureType) = "en")
+            }}
+        }}
+
+        GROUP BY 
+            ?mainPurpose
+            ?legalBasis
+            ?isAccelerated
+            ?procedureId
+            ?procedureInternalId
+            ?procedureTitle
+            ?procedureDescription
+            ?procedureType
+
+        ORDER BY 
+            ?procedureInternalId
+        """
+
+        df_chunk = _get_query_result(query)
+        all_results.append(df_chunk)
+        i = i + 1
+        print(f"    Data extraction for {min(chunk_size*i,len(procedure_ids))}/{len(procedure_ids)} procedures done.")
+    
+    if all_results:
+        # combine chunks
+        df_result = pl.concat(all_results, how="diagonal")
+
+        # group by to combine titles and descriptions in different languagues into single rows
+        group_cols = [
+            "earliestNoticeTimestamp", "procedureId", "mainPurpose", "legalBasis", 
+            "isAccelerated", "procedureInternalId", "procedureType"
+        ]
+
+        df_final = (
+            df_result
+            .with_columns([
+                # Create the '"en":"Title"' format for Titles
+                pl.format('"{}" : "{}"', 
+                        pl.col("langProcedureTitle"), 
+                        pl.col("procedureTitle")
+                        ).alias("formattedTitle"),
+                
+                # Create the '"en":"Description"' format for Descriptions
+                pl.format('"{}" : "{}"', 
+                        pl.col("langProcedureDescription"), 
+                        pl.col("procedureDescription")
+                        ).alias("formattedDesc")
+            ])
+            .group_by(group_cols)
+            .agg([
+                # Join the formatted strings with a comma, ignoring nulls
+                pl.col("formattedTitle").unique().drop_nulls().str.concat(",").alias("procedureTitles"),
+                pl.col("formattedDesc").unique().drop_nulls().str.concat(",").alias("procedureDescriptions")
+            ])
+        )
+
+        return df_final
+
+
 def _get_procedures(legal_names:list):
     '''Returns dataframe with all procedures linked to organization
     that appears in `legal_names`.'''

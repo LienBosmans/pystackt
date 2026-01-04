@@ -6,7 +6,8 @@ def _initiate_object_types() -> dict:
     descriptions = ['procedure',
                     'notice',
                     'lot',
-                    'organization'
+                    'role',
+                    'organization',
                    ]
     
     object_types = {}
@@ -17,10 +18,7 @@ def _initiate_object_types() -> dict:
 
 
 def _initiate_object_attributes(object_types:dict) -> dict:
-    """Initiates below object attributes, linking them to the correct object type.
-    `procedure`: `procedure_id`, `internal_procedure_id`, `title`, `description`, `procedure_type`, `main_purpose`, `legal_basis`, `is_accelerated`.
-    `notice`: `ojs_issue_number`, `publication_number`, `notice_type`, `form_type`, `official_language`.
-    """
+    """Initiates object attributes, linking them to the correct object type."""
 
     descriptions = {'procedure':[['procedure_id','varchar'],
                                  ['internal_procedure_id','varchar'],
@@ -44,6 +42,9 @@ def _initiate_object_attributes(object_types:dict) -> dict:
                             ['description','varchar'],
                             ['main_purpose','varchar'],
                            ],
+                     'role':[['role','varchar'],
+                             ['org_id','varchar']
+                            ],
                      'organization':[['legal_name','varchar'],
                                      ['legal_identifier','varchar'],
                                     ],
@@ -59,18 +60,20 @@ def _initiate_object_attributes(object_types:dict) -> dict:
 
 
 def _initiate_relation_qualifiers() -> dict:
-    """Initiates the relation qualifiers `dispatched`, `published`, `refers_to`."""
+    """Initiates the relation qualifiers."""
 
     descriptions = [['dispatched','varchar'],
                     ['published','varchar'],
                     ['refers_to','varchar'],
                     ['divided_into','varchar'],
-                    ['announces','varchar'],
+                    ['announces_lot','varchar'],
+                    ['announces_procedure','varchar'],
                     ['deadline','varchar'],
                     ['announces_role','varchar'],
+                    ['played_by','varchar'],
                     ['acts_on_behalf_of','varchar'],
                     ['role_context','varchar'],
-                    ['refers_to_role','varchar']
+                    ['refers_to_role','varchar'],
                    ]
     
     relation_qualifiers = {}
