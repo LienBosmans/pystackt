@@ -17,7 +17,6 @@ from pystackt.extractors.ted.initiate_types import (    # contains pre-defined e
 from pystackt.extractors.ted.get_data import (      # uses SPARQL queries send to the web api of ted portal to get the data
 # from get_data import (
     _get_procedure_ids,
-    _get_procedures_new,
     _get_procedures,
     _get_notices,
     _get_lots,
@@ -98,8 +97,7 @@ def get_ted_log(org_legal_names:list,
     print(f"{datetime.now().strftime("%d-%m-%Y %H:%M")}    Starting data extraction for {num_procedures} procedures ...")
 
     # get procedure objects
-    df_procedures = _get_procedures_new(procedure_ids=df_procedure_ids["procedureId"].to_list())
-    ## df_procedures = _get_procedures(legal_names=org_legal_names) ## old code, to delete if new works
+    df_procedures = _get_procedures(procedure_ids=df_procedure_ids["procedureId"].to_list())
     procedure_dicts = df_procedures.to_dicts()
 
     print_counter = 0

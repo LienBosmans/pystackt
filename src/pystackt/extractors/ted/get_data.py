@@ -85,7 +85,7 @@ def chunk_list(data, size=50):
         yield data[i:i + size]
 
 
-def _get_procedures_new(procedure_ids:list, chunk_size:int=100):
+def _get_procedures(procedure_ids:list, chunk_size:int=100):
     '''Returns dataframe with all procedures with id in `procedure_ids`.
     Processing is done in chunks of `chunk_size`.'''
 
@@ -196,89 +196,6 @@ def _get_procedures_new(procedure_ids:list, chunk_size:int=100):
         )
 
         return df_final
-
-
-def _get_procedures(legal_names:list):
-    '''Returns dataframe with all procedures linked to organization
-    that appears in `legal_names`.'''
-    formatted_names = ", ".join([f'{name}' for name in legal_names])
-
-    query = f"""
-    PREFIX epo: <http://data.europa.eu/a4g/ontology#>  
-    PREFIX org: <http://www.w3.org/ns/org#>
-    PREFIX dcterms: <http://purl.org/dc/terms/>
-    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-    PREFIX ns3: <http://www.w3.org/ns/adms#>
-
-    SELECT 
-        (MIN(?eSenderDispatchDate) AS ?earliestNoticeTimestamp)
-        ?mainPurpose
-        ?legalBasis
-        ?isAccelerated
-        ?procedureId
-        ?procedureInternalId 
-        (GROUP_CONCAT(DISTINCT CONCAT('"', lang(?procedureTitle), '":"', ?procedureTitle, '"') ; separator=",") AS ?procedureTitles)
-		(GROUP_CONCAT(DISTINCT CONCAT('"', lang(?procedureDescription), '":"', ?procedureDescription, '"') ; separator=",") AS ?procedureDescriptions)
-        ?procedureTypeUri
-        ?procedureType
-
-    WHERE {{
-        FILTER (?legalName IN ( {formatted_names} ) )
-        ?noticeUri a epo:Notice ;
-            epo:refersToProcedure ?procedureUri ;
-            epo:hasESenderDispatchDate ?eSenderDispatchDate ;
-            epo:announcesRole [  
-                a ?role ; 
-                    epo:playedBy [
-                        a org:Organization;
-                        epo:hasLegalName ?legalName ;
-                    ] 
-            ] .
-      
-        ?procedureUri ns3:identifier ?procedureIdentifier .
-      	?procedureIdentifier skos:notation ?procedureId .
-    
-        OPTIONAL {{ ?procedureUri dcterms:title ?procedureTitle . }}
-        OPTIONAL {{ ?procedureUri dcterms:description ?procedureDescription . }}
-        OPTIONAL {{ 
-            ?procedureUri epo:hasInternalIdentifier ?procedureInternalIdentifier . 
-            ?procedureInternalIdentifier skos:notation ?procedureInternalId .
-        }}
-        OPTIONAL {{ ?procedureUri epo:isAccelerated ?isAccelerated . }}
-
-        OPTIONAL {{ 
-            ?procedureUri epo:hasPurpose ?procedurePurposeUri .
-            ?procedurePurposeUri epo:hasMainClassification ?purposeClassification .
-            ?purposeClassification skos:prefLabel ?mainPurpose .
-            FILTER(lang(?mainPurpose) = "en")
-        }}
-        
-        OPTIONAL {{
-            ?procedureUri epo:hasLegalBasis ?legalBasisUri .
-            ?legalBasisUri skos:scopeNote ?legalBasis .
-            FILTER(lang(?legalBasis) = "en")
-        }}
-        
-        OPTIONAL {{
-            ?procedureUri epo:hasProcedureType ?procedureTypeUri .
-            ?procedureTypeUri skos:prefLabel ?procedureType .
-            FILTER(lang(?procedureType) = "en")
-        }}
-    }}
-
-    GROUP BY 
-        ?mainPurpose
-        ?legalBasis
-        ?isAccelerated
-        ?procedureId
-        ?procedureInternalId
-        ?procedureTypeUri
-        ?procedureType
-    ORDER BY 
-        ?procedureInternalId
-    """
-
-    return _get_query_result(query)
 
 
 def _get_notices(procedure_ids:list):
